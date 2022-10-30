@@ -1,0 +1,18 @@
+{
+    "db": {
+        "host": "localhost",
+        "user": "root",
+        "password": "password",
+        "database": "PlantHospital"
+    },
+    "SENSAPI": {
+        "serviceid": "ncp:sms:kr:294663010604:plan_hospital_verify",
+        "accesskey": "NALUHc4Aj1uw0vbEmVsv",
+        "secretkey": "b6bz0zEozUXtbiWZ4pNhqHmRmRU68tS6zQzfapDY",
+        "companynumber": "01071544263"
+    },
+    "JWT": {
+        "accessToken": "fcc0X8!yEM0oNN2lHj#B",
+        "refreshToken": "H77QY#7IY3QusbYJ8P0Z"
+    }
+}
