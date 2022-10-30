@@ -4,21 +4,27 @@ const config = require('../config.json');
 const cryptojs = require('crypto-js');
 const axios = require("axios");
 
-var connection = require("../db");
+const dotenv = require("dotenv");
+const jwt = require("jsonwebtoken");
 
+var connection = require("../db");
+dotenv.config();
 
 let verificationCode = 0; // 인증 코드 (6자리 숫자)
 
-var users = {
-	number: ''
+var res_message = {}
+
+var user = {
+	first_name: '',
+	number: '',
+	id: ''
 };
 
-var res_message = {}
 
 //인증번호 전송
 var sendVerification = async (req, res) => {
 	try {
-		const user_number = users.number; // SMS를 수신할 전화번호
+		const user_number = user.number; // SMS를 수신할 전화번호
 		const date = Date.now().toString(); // 날짜 string
 
 		verificationCode = 0
@@ -91,15 +97,26 @@ var sendVerification = async (req, res) => {
 
 
 
-router.post("/", function (req, res) {
+//sign메서드에서 4번째 인자로 콜백함수 넣기. 없으면 동기처리
+function generateAccessToken() {
+	return jwt.sign({
+		user_id: user.id,
+		user_first_name: user.first_name
+	}, config.JWT.accessToken, {
+		expiresIn: '7d'
+	})
+};
 
-	users.number = req.body.number
+router.post("/", (req, res) => {
+
+	user.number = req.body.number
+	console.log("user", user);
 
 	//가입 체크
 	var registerCheckQ = 'SELECT * from user WHERE user_number = ?';
 
 	connection.query(
-		registerCheckQ, [users.number],
+		registerCheckQ, [user.number],
 		async function (err, result, fields) {
 			if (err) {
 				console.log("error ocurred - duplicate:", err);
@@ -109,6 +126,9 @@ router.post("/", function (req, res) {
 				});
 			} else {
 				var keys = Object.keys(result);
+				user.first_name = result[0].user_first_name;
+				user.id = result[0].user_id;
+				console.log("user ", user);
 
 
 				//중복 아닐때
@@ -135,21 +155,28 @@ router.post("/", function (req, res) {
 });
 
 
-router.post("/match", function (req, res) {
+router.get("/match", (req, res) => {
 
 	const userVerficationCode = req.body.code; //사용자가 입력한 인증번호
-	console.log("code: ", verificationCode, "user code:", userVerficationCode);
-	console.log(" number :", users.number);
-
 
 	if (verificationCode == userVerficationCode) {
-		//번호 인증 후 로그인
-		console.log("인증번호 일치");
-		//여기서 로그인 토큰 보내기
-		res.send({
-			code: 200,
-			success: "로그인 성공",
-		});
+		//db에서 user 정보 가져오기
+
+		//로그인 토큰 
+		//refresh 같이발급후 디비저장. access만료시 db에서 refresh 조회 후 새 access 발급
+		const token = generateAccessToken();
+		console.log("Token :", token);
+
+		// var expiryDate = new Date(Date.now() + 60 * 60 * 1000 * 24 * 7);
+		// res.cookie("loginToken", token, {
+		// 	expires: expiryDate,
+		// 	httpOnly: true,
+		// 	// secure: true,
+		// 	// signed: 'adsadfd'
+		// });
+
+		res.send(token);
+
 
 	} else {
 		res.send({
@@ -157,15 +184,25 @@ router.post("/match", function (req, res) {
 			failed: "인증번호 틀림",
 		});
 	}
+});
+
+router.get("/test", (req, res) => {
+
+
+	let token = req.headers.token;
+	console.log("Testa", token);
+
+	let decoded = jwt.verify(token, config.JWT.accessToken);
+	console.log("decode", decoded);
+	if (decoded) {
+		res.send("권한 ok");
+	} else {
+		res.send("권한 x");
+	}
+
 
 
 });
-
-
-
-
-
-
 
 
 module.exports = router;

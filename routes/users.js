@@ -3,22 +3,22 @@ var router = express.Router();
 
 var connection = require("../db");
 
-/* GET users listing. */
-// router.get("/", function (req, res, next) {
-//   res.send("respond with a resourcessssss");
-// });
+
 router.get("/", function (req, res) {
-  res.json({ message: "welcome to our upload module apis" });
+  res.json({
+    message: "welcome to our upload module apis"
+  });
 });
 
 router.get("/db", function (req, res, next) {
-  var getUserQ = "select * from user";
+  var getUserQ = "select * from user where user_number = '01071544263'";
 
   connection.query(getUserQ, function (err, result) {
     if (err) {
       console.log(err);
       res.send("Unable to get User");
     } else {
+      console.log(result[0].user_first_name);
       res.send(result);
     }
   });

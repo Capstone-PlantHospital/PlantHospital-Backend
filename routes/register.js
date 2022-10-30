@@ -6,9 +6,11 @@ const axios = require("axios");
 
 var connection = require("../db");
 
+
+
 let verificationCode = 0; // 인증 코드 (6자리 숫자)
 
-var users = {
+var user = {
   first_name: '',
   last_name: '',
   number: '',
@@ -19,7 +21,8 @@ var res_message = {}
 //인증번호 전송
 var sendVerification = async (req, res) => {
   try {
-    const user_number = users.number; // SMS를 수신할 전화번호
+
+    const user_number = user.number; // SMS를 수신할 전화번호
     const date = Date.now().toString(); // 날짜 string
 
     verificationCode = 0
@@ -94,15 +97,15 @@ var sendVerification = async (req, res) => {
 
 router.post("/", (req, res) => {
 
-  users.first_name = req.body.first_name
-  users.last_name = req.body.last_name
-  users.number = req.body.number
+  user.first_name = req.body.first_name
+  user.last_name = req.body.last_name
+  user.number = req.body.number
 
   //중복체크
   var duplicateCheckQ = 'SELECT * from user WHERE user_number = ?';
 
   connection.query(
-    duplicateCheckQ, [users.number],
+    duplicateCheckQ, [user.number],
     async function (err, result, fields) {
       if (err) {
         console.log("error ocurred - duplicate:", err);
@@ -143,7 +146,7 @@ router.post("/match", function (req, res) {
 
   const userVerficationCode = req.body.code; //사용자가 입력한 인증번호
   console.log("code: ", verificationCode, "user code:", userVerficationCode)
-  console.log("user first :", users.first_name, "user last:", users.last_name, " number :", users.number)
+  console.log("user first :", user.first_name, "user last:", user.last_name, " number :", user.number)
 
 
   if (verificationCode == userVerficationCode) {
@@ -152,7 +155,7 @@ router.post("/match", function (req, res) {
 
     connection.query(
       registerUserQ,
-      [users.first_name, users.last_name, users.number],
+      [user.first_name, user.last_name, user.number],
       function (err, result, fields) {
         if (err) {
           console.log("error ocurred - register", err);

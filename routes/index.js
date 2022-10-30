@@ -20,17 +20,8 @@ var func_a = () => {
 
 
 
-router.post("/aa", (req, res) => {
-  res.send(func_a())
-
-  verificationCode = 0
-  for (let i = 0; i < 4; i++) {
-    verificationCode *= 10;
-    verificationCode += parseInt(Math.random() * (10 - 1) + 1);
-    console.log(i, ' : ', verificationCode)
-  };
-  console.log("code :", verificationCode)
-
+router.get("/aa", (req, res) => {
+  console.log("cookie", req.cookies);
 
 });
 
