@@ -135,10 +135,12 @@ router.post('/delete', (req, res) => {
 	if (decoded) {
 		//폴더 아이디 확인
 		folder.id = req.body.folder_id
+		folder.user_id = decoded.user_id
+		console.log(folder);
 
-		var sql = "DELETE FROM folder WHERE folder_id =?;"
+		var sql = "DELETE FROM folder WHERE folder_id =? AND folder_user_id =?;"
 		try {
-			connection.query(sql, [folder.id], (err, result, fields) => {
+			connection.query(sql, [folder.id, folder.user_id], (err, result, fields) => {
 				if (err) {
 					res.send(err);
 				} else {
