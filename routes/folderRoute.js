@@ -78,63 +78,76 @@ router.post('/create', (req, res) => {
 /* 폴더 수정 */
 /* 수정정보 입력 > 폴더id 조회 > 수정 */
 router.post('/update', (req, res) => {
-	token = req.headers.token;
+	try {
+		token = req.headers.token;
 
-	let decoded = jwt.verify(token, config.JWT.accessToken);
+		let decoded = jwt.verify(token, config.JWT.accessToken);
 
-	if (decoded) {
-		//폴더 아이디 확인
-		folder.name = req.body.name
-		folder.id = req.body.folder_id
+		if (decoded) {
+			//폴더 아이디 확인
+			folder.name = req.body.name
+			folder.id = req.body.folder_id
 
-		var sql = "UPDATE folder SET folder_name = ? WHERE folder_id = ?;"
-		try {
-			connection.query(sql, [folder.name, folder.id], (err, result, fields) => {
-				if (err) {
-					res.send(err);
-				} else {
-					console.log(result);
-					res.send(result);
-				}
+			var sql = "UPDATE folder SET folder_name = ? WHERE folder_id = ?;"
+			try {
+				connection.query(sql, [folder.name, folder.id], (err, result, fields) => {
+					if (err) {
+						err.statusCode = 400;
+						res.send(err);
+					} else {
+						console.log(result);
+						res.send(result);
+					}
+				});
+			} catch (err) {
+				err.statusCode = 400;
+				res.send(err);
+			}
+		} else {
+			res.send({
+				statusCode: 400,
+				message: 'folder update fail'
 			});
-
-		} catch (err) {
-			res.send(err);
 		}
-	} else {
-		res.send("폴더 수정 실패");
+	} catch (err) {
+		err.statusCode = 400;
+		res.send(err);
 	}
 });
 
 /* 폴더 삭제 */
 /* 폴더삭제 > 폴더id 조회 > 폴더 내 기록 삭제 */
 router.post('/delete', (req, res) => {
-	token = req.headers.token;
+	try {
+		token = req.headers.token;
 
-	let decoded = jwt.verify(token, config.JWT.accessToken);
+		let decoded = jwt.verify(token, config.JWT.accessToken);
 
-	if (decoded) {
-		//폴더 아이디 확인
-		folder.id = req.body.folder_id
-		folder.user_id = decoded.user_id
-		console.log(folder);
+		if (decoded) {
+			//폴더 아이디 확인
+			folder.id = req.body.folder_id
+			folder.user_id = decoded.user_id
+			console.log(folder);
 
-		var sql = "DELETE FROM folder WHERE folder_id =? AND folder_user_id =?;"
-		try {
+			var sql = "DELETE FROM folder WHERE folder_id =? AND folder_user_id =?;"
 			connection.query(sql, [folder.id, folder.user_id], (err, result, fields) => {
 				if (err) {
+					err.statusCode = 400;
 					res.send(err);
 				} else {
 					console.log(result);
 					res.send(result);
 				}
 			});
-
-		} catch (err) {
-			res.send(err);
+		} else {
+			res.send({
+				statusCode: 400,
+				message: 'folder delete fail'
+			});
 		}
-	} else {
-		res.send("폴더 삭제 실패");
+	} catch (err) {
+		err.statusCode = 400;
+		res.send(err);
 	}
 });
 
