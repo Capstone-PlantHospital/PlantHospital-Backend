@@ -174,13 +174,17 @@ router.get("/match", (req, res) => {
 		// 	// signed: 'adsadfd'
 		// });
 
-		res.send(token);
+		res.send({
+			code: 200,
+			success: "user login sucessfully",
+			token: token
+		});
 
 
 	} else {
 		res.send({
 			code: 400,
-			failed: "인증번호 틀림",
+			failed: "user login fail"
 		});
 	}
 });
