@@ -3,7 +3,7 @@
         "host": "localhost",
         "user": "root",
         "password": "password",
-        "database": "PlantHospital"
+        "database": "planthospital"
     },
     "SENSAPI": {
         "serviceid": "ncp:sms:kr:294663010604:plan_hospital_verify",
