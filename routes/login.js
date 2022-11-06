@@ -126,13 +126,12 @@ router.post("/", (req, res) => {
 				});
 			} else {
 				var keys = Object.keys(result);
-				user.first_name = result[0].user_first_name;
-				user.id = result[0].user_id;
-				console.log("user ", user);
 
-
-				//중복 아닐때
+				//회원 정보가 있을 때
 				if (keys.length != 0) {
+					user.first_name = result[0].user_first_name;
+					user.id = result[0].user_id;
+					console.log("user ", user);
 
 					try {
 						await sendVerification()
