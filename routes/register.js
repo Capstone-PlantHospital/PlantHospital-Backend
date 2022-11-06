@@ -100,6 +100,13 @@ router.post("/", (req, res) => {
   user.first_name = req.body.first_name
   user.last_name = req.body.last_name
   user.number = req.body.number
+  if (user.number.length < 11) {
+    res.send({
+      statusCode: 400,
+      message: "number is wrong"
+    });
+    return
+  }
 
   //중복체크
   var duplicateCheckQ = 'SELECT * from user WHERE user_number = ?';
@@ -110,8 +117,8 @@ router.post("/", (req, res) => {
       if (err) {
         console.log("error ocurred - duplicate:", err);
         res.send({
-          code: 400,
-          failed: "error ocurred",
+          statusCode: 400,
+          message: "error ocurred",
         });
       } else {
         var keys = Object.keys(result);
@@ -130,8 +137,8 @@ router.post("/", (req, res) => {
         } else {
           console.log("중복임");
           res.send({
-            code: 400,
-            failed: "중복",
+            statusCode: 400,
+            message: "중복",
           });
         }
       }
@@ -142,41 +149,48 @@ router.post("/", (req, res) => {
 
 //인증번호 확인
 router.post("/match", function (req, res) {
+  try {
+    const userVerficationCode = req.body.code; //사용자가 입력한 인증번호
+    user.first_name = req.body.first_name
+    user.last_name = req.body.last_name
+    user.number = req.body.number
+
+    if (user.number.length < 11) {
+      res.send({
+        statusCode: 400,
+        message: "number is wrong"
+      });
+      return
+    }
 
 
-  const userVerficationCode = req.body.code; //사용자가 입력한 인증번호
-  console.log("code: ", verificationCode, "user code:", userVerficationCode)
-  console.log("user first :", user.first_name, "user last:", user.last_name, " number :", user.number)
+    console.log("code: ", verificationCode, "user code:", userVerficationCode)
+    console.log("user first :", user.first_name, "user last:", user.last_name, " number :", user.number)
 
 
-  if (verificationCode == userVerficationCode) {
-    //번호 인증 후 insert
-    var registerUserQ = "INSERT INTO user(user_first_name, user_last_name, user_number) values (?,?,?);";
+    if (verificationCode == userVerficationCode) {
+      //번호 인증 후 insert
+      var registerUserQ = "INSERT INTO user(user_first_name, user_last_name, user_number) values (?,?,?);";
 
-    connection.query(
-      registerUserQ,
-      [user.first_name, user.last_name, user.number],
-      function (err, result, fields) {
-        if (err) {
-          console.log("error ocurred - register", err);
-          res.send({
-            code: 400,
-            failed: "error ocurred",
-          });
-        } else {
+      connection.query(
+        registerUserQ,
+        [user.first_name, user.last_name, user.number],
+        function (err, result, fields) {
           console.log("insert 성공! The solution is: ", result);
           res.send({
-            code: 200,
-            success: "user registered sucessfully",
+            statusCode: 200,
+            message: "user registered sucessfully",
           });
         }
-      }
-    );
-  } else {
-    res.send({
-      code: 400,
-      failed: "인증번호 틀림",
-    });
+      );
+    } else {
+      var error = new Error();
+      error.message = 'code is wrong';
+      throw error;
+    }
+  } catch (err) {
+    err.statusCode = 400;
+    res.send(err);
   }
 });
 

@@ -15,84 +15,65 @@ var folder = {
 
 /* 폴더 전체 리스트 */
 router.get('/list', (req, res) => {
-	token = req.headers.token;
-	console.log("token", token);
+	try {
+		token = req.headers.token;
 
-	let decoded = jwt.verify(token, config.JWT.accessToken);
-	if (decoded) {
-		//user_id로 폴더 가져오기
-		console.log("user_id :", decoded.user_id)
+		let decoded = jwt.verify(token, config.JWT.accessToken);
+		if (decoded) {
+			//user_id로 폴더 가져오기
+			console.log("user_id :", decoded.user_id)
 
-		var sql = "SELECT * FROM folder where folder_user_id = ?";
-		try {
+			var sql = "SELECT * FROM folder where folder_user_id = ?";
+
 			connection.query(sql, [decoded.user_id], (err, result, fields) => {
-				if (err) {
-					res.send(err);
-				} else {
-					console.log(result);
-					res.send(result);
-				}
+				console.log(result);
+				res.send(result);
 			});
-
-		} catch (err) {
-			res.send(err);
 		}
-	} else {
-		res.send("폴더 불러오기 실패");
+	} catch (err) {
+		err.statusCode = 400;
+		res.send(err);
 	}
 });
+
 
 /* 폴더 생성 */
 router.post('/create', (req, res) => {
-	token = req.headers.token;
+	try {
+		token = req.headers.token;
 
-	let decoded = jwt.verify(token, config.JWT.accessToken);
+		let decoded = jwt.verify(token, config.JWT.accessToken);
+		if (decoded) {
+			//user_id로 폴더 가져오기
+			console.log("user_id :", decoded.user_id);
 
-	if (decoded) {
-		//user_id로 폴더 가져오기
-		console.log("user_id :", decoded.user_id);
+			folder.name = req.body.name
+			folder.type = req.body.type
+			folder.user_id = decoded.user_id
 
-		folder.name = req.body.name
-		folder.type = req.body.type
-		folder.user_id = decoded.user_id
+			console.log("folder", folder);
+			var sql = "INSERT INTO folder(folder_name, folder_type, folder_user_id) values (?,?,?);";
 
-
-		console.log("folder", folder);
-		var sql = "INSERT INTO folder(folder_name, folder_type, folder_user_id) values (?,?,?);";
-
-		try {
 			connection.query(sql, [folder.name, folder.type, folder.user_id], (err, result, fields) => {
-				if (err) {
-					res.send(err);
-				} else {
-					console.log(result);
-					res.send('폴더 생성 성공');
-				}
+				console.log(result);
+				res.send({
+					statusCode: 200,
+					message: 'folder create sucessfully'
+				});
 			});
-
-		} catch (err) {
-			res.send(err);
 		}
-
-
-		// new Promise((resolve, reject) => {
-		// 	connection.query(sql, [folder.name, folder.type, folder.user_id], (err, result, fields) => {
-		// 		if (err) {
-		// 			reject(err);
-		// 			res.send(err);
-		// 		} else {
-		// 			resolve(result);
-		// 		}
-		// 	});
-		// }).then((result) => {
-		// 	console.log(result);
-		// 	res.send('폴더 생성 성공');
-		// });
-
-	} else {
-		res.send("폴더 생성 실패");
+	} catch (err) {
+		err.statusCode = 400;
+		res.send(err);
 	}
 });
+
+
+
+
+
+
+
 
 /* 폴더 수정 */
 /* 수정정보 입력 > 폴더id 조회 > 수정 */

@@ -121,8 +121,8 @@ router.post("/", (req, res) => {
 			if (err) {
 				console.log("error ocurred - duplicate:", err);
 				res.send({
-					code: 400,
-					failed: "error ocurred",
+					statusCode: 400,
+					message: "error ocurred",
 				});
 			} else {
 				var keys = Object.keys(result);
@@ -144,8 +144,8 @@ router.post("/", (req, res) => {
 				} else {
 					console.log("회원아님");
 					res.send({
-						code: 400,
-						failed: "회원아님",
+						statusCode: 400,
+						message: "회원아님",
 					});
 				}
 			}
@@ -175,37 +175,32 @@ router.get("/match", (req, res) => {
 		// });
 
 		res.send({
-			code: 200,
-			success: "user login sucessfully",
+			statusCode: 200,
+			message: "user login sucessfully",
 			token: token
 		});
 
 
 	} else {
 		res.send({
-			code: 400,
-			failed: "user login fail"
+			statusCode: 400,
+			message: "user login fail"
 		});
 	}
 });
 
-router.get("/test", (req, res) => {
+// router.get("/test", (req, res) => {
+// 	let token = req.headers.token;
+// 	console.log("Testa", token);
 
-
-	let token = req.headers.token;
-	console.log("Testa", token);
-
-	let decoded = jwt.verify(token, config.JWT.accessToken);
-	console.log("decode", decoded);
-	if (decoded) {
-		res.send("권한 ok");
-	} else {
-		res.send("권한 x");
-	}
-
-
-
-});
+// 	let decoded = jwt.verify(token, config.JWT.accessToken);
+// 	console.log("decode", decoded);
+// 	if (decoded) {
+// 		res.send("권한 ok");
+// 	} else {
+// 		res.send("권한 x");
+// 	}
+// });
 
 
 module.exports = router;
