@@ -9,7 +9,6 @@ var indexRouter = require("./routes/index");
 
 var usersRouter = require("./routes/user");
 var loginRouter = require("./routes/login");
-var logoutRouter = require("./routes/logout");
 var folderRouter = require("./routes/folderRoute");
 var diagnosisRouter = require("./routes/diagnosisRoute");
 
@@ -30,7 +29,6 @@ app.use("/", indexRouter);
 
 app.use("/user", usersRouter);
 app.use("/login", loginRouter);
-app.use("/logout", logoutRouter);
 
 app.use("/folder", folderRouter);
 app.use("/diagnosis", diagnosisRouter);
