@@ -22,6 +22,8 @@ var func_a = () => {
 
 router.get("/aa", (req, res) => {
   console.log("cookie", req.cookies);
+  let time = new Date();
+  res.send(time);
 
 });
 

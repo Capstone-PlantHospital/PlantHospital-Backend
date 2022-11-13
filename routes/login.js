@@ -1,13 +1,16 @@
 var express = require("express");
 var router = express.Router();
+
 const config = require('../config.json');
 const cryptojs = require('crypto-js');
 const axios = require("axios");
-
 const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
 
-var connection = require("../db");
+const connection = require("../db");
+
+
+
 dotenv.config();
 
 let verificationCode = 0; // 인증 코드 (6자리 숫자)
@@ -153,34 +156,28 @@ router.post("/", (req, res) => {
 	)
 });
 
-
 router.get("/match", (req, res) => {
 
 	const userVerficationCode = req.body.code; //사용자가 입력한 인증번호
-
+	// verificationCode = 1396
 	if (verificationCode == userVerficationCode) {
 		//db에서 user 정보 가져오기
 
 		//로그인 토큰 
 		//refresh 같이발급후 디비저장. access만료시 db에서 refresh 조회 후 새 access 발급
 		const token = generateAccessToken();
-		console.log("Token :", token);
 
-		// var expiryDate = new Date(Date.now() + 60 * 60 * 1000 * 24 * 7);
-		// res.cookie("loginToken", token, {
-		// 	expires: expiryDate,
-		// 	httpOnly: true,
-		// 	// secure: true,
-		// 	// signed: 'adsadfd'
+		console.log("Token :", token);
+		// res.cookie('user_token', token, {
+		// 	maxAge: 30 * 60 * 1000
 		// });
+
 
 		res.send({
 			statusCode: 200,
 			message: "user login sucessfully",
 			token: token
 		});
-
-
 	} else {
 		res.send({
 			statusCode: 400,

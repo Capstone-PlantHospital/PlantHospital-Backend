@@ -3,10 +3,11 @@ var router = express.Router();
 const config = require('../config.json');
 const cryptojs = require('crypto-js');
 const axios = require("axios");
+const jwt = require("jsonwebtoken");
 
 var connection = require("../db");
 
-
+let token = '';
 
 let verificationCode = 0; // 인증 코드 (6자리 숫자)
 
@@ -93,8 +94,7 @@ var sendVerification = async (req, res) => {
   }
 };
 
-
-
+//회원가입
 router.post("/", (req, res) => {
 
   user.first_name = req.body.first_name
@@ -163,7 +163,6 @@ router.post("/match", function (req, res) {
       return
     }
 
-
     console.log("code: ", verificationCode, "user code:", userVerficationCode)
     console.log("user first :", user.first_name, "user last:", user.last_name, " number :", user.number)
 
@@ -187,6 +186,71 @@ router.post("/match", function (req, res) {
       var error = new Error();
       error.message = 'code is wrong';
       throw error;
+    }
+  } catch (err) {
+    err.statusCode = 400;
+    res.send(err);
+  }
+});
+
+
+/* 회원정보 가져오기 */
+router.get('/info', (req, res) => {
+  try {
+    token = req.headers.token;
+    let decoded = jwt.verify(token, config.JWT.accessToken);
+
+    if (decoded) {
+      var sql = "SELECT * FROM user where user_id = ?";
+
+      connection.query(sql, [decoded.user_id], (err, result, fields) => {
+        console.log(result);
+        res.send(result);
+      });
+    }
+  } catch (err) {
+    err.statusCode = 400;
+    res.send(err);
+  }
+});
+
+
+/* 회원정보 수정 */
+/* 수정정보 입력 > 회원 id 조회 > 수정 */
+router.put('/update', (req, res) => {
+  try {
+    token = req.headers.token;
+
+    let decoded = jwt.verify(token, config.JWT.accessToken);
+
+    if (decoded) {
+      //폴더 아이디 확인
+      user.first_name = req.body.first_name
+      user.last_name = req.body.last_name
+      user.number = req.body.number
+
+      var sql = "UPDATE user SET user_first_name = ?, user_last_name = ?, user_number=? WHERE user_id= ?;"
+      try {
+        connection.query(sql,
+          [user.first_name, user.last_name, user.number, decoded.user_id],
+          (err, result, fields) => {
+            if (err) {
+              err.statusCode = 400;
+              res.send(err);
+            } else {
+              console.log(result);
+              res.send(result);
+            }
+          });
+      } catch (err) {
+        err.statusCode = 400;
+        res.send(err);
+      }
+    } else {
+      res.send({
+        statusCode: 400,
+        message: 'user update fail'
+      });
     }
   } catch (err) {
     err.statusCode = 400;

@@ -5,10 +5,11 @@ var logger = require("morgan");
 
 
 var indexRouter = require("./routes/index");
-var usersRouter = require("./routes/users");
 
-var registerRouter = require("./routes/register");
+
+var usersRouter = require("./routes/user");
 var loginRouter = require("./routes/login");
+var logoutRouter = require("./routes/logout");
 var folderRouter = require("./routes/folderRoute");
 var diagnosisRouter = require("./routes/diagnosisRoute");
 
@@ -26,10 +27,10 @@ app.use(cookieParser('adsadfd'));
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
-app.use("/users", usersRouter);
 
-app.use("/register", registerRouter);
+app.use("/user", usersRouter);
 app.use("/login", loginRouter);
+app.use("/logout", logoutRouter);
 
 app.use("/folder", folderRouter);
 app.use("/diagnosis", diagnosisRouter);

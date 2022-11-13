@@ -17,6 +17,8 @@ var folder = {
 router.get('/list', (req, res) => {
 	try {
 		token = req.headers.token;
+		// token = req.cookies.user_token;
+		console.log(token)
 
 		let decoded = jwt.verify(token, config.JWT.accessToken);
 		if (decoded) {
@@ -117,7 +119,7 @@ router.post('/update', (req, res) => {
 
 /* 폴더 삭제 */
 /* 폴더삭제 > 폴더id 조회 > 폴더 내 기록 삭제 */
-router.post('/delete', (req, res) => {
+router.delete('/delete', (req, res) => {
 	try {
 		token = req.headers.token;
 
@@ -125,12 +127,11 @@ router.post('/delete', (req, res) => {
 
 		if (decoded) {
 			//폴더 아이디 확인
-			folder.id = req.body.folder_id
-			folder.user_id = decoded.user_id
-			console.log(folder);
+			// folder.id = req.body.folder_id
+			folder.id = req.query.id
 
 			var sql = "DELETE FROM folder WHERE folder_id =? AND folder_user_id =?;"
-			connection.query(sql, [folder.id, folder.user_id], (err, result, fields) => {
+			connection.query(sql, [folder.id, decoded.user_id], (err, result, fields) => {
 				if (err) {
 					err.statusCode = 400;
 					res.send(err);
@@ -150,5 +151,27 @@ router.post('/delete', (req, res) => {
 		res.send(err);
 	}
 });
+
+
+
+// router.get("/db/:id", function (req, res, next) {
+// 	console.log(3);
+// 	let tt = req.params.id;
+// 	console.log(tt);
+// 	res.send(tt);
+
+// 	// var getUserQ = "select * from user where user_id =" + req.params.id;
+// 	// console.log(3);
+
+// 	// connection.query(getUserQ, function (err, result) {
+// 	// 	if (err) {
+// 	// 		console.log(err);
+// 	// 		res.send("Unable to get User");
+// 	// 	} else {
+// 	// 		res.send(result);
+// 	// 	}
+// 	// });
+// });
+
 
 module.exports = router;

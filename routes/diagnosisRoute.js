@@ -142,7 +142,7 @@ router.post('/update', (req, res) => {
 
 /* 진단기록 삭제 */
 /* 진단기록 삭제 > 진단기록 id 조회 > 기록 삭제 */
-router.post('/delete', (req, res) => {
+router.delete('/delete', (req, res) => {
 	try {
 		token = req.headers.token;
 
@@ -150,7 +150,7 @@ router.post('/delete', (req, res) => {
 
 		if (decoded) {
 			//폴더 아이디 확인
-			diagnosis.diagnosis_id = req.body.diagnosis_id
+			diagnosis.diagnosis_id = req.query.id
 
 			var sql = "DELETE FROM diagnosis WHERE diagnosis_id =?;"
 			connection.query(sql,
