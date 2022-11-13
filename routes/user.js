@@ -95,7 +95,7 @@ var sendVerification = async (req, res) => {
 };
 
 //회원가입
-router.post("/", (req, res) => {
+router.get("/", (req, res) => {
 
   user.first_name = req.body.first_name
   user.last_name = req.body.last_name
@@ -169,7 +169,7 @@ router.post("/match", function (req, res) {
 
     if (verificationCode == userVerficationCode) {
       //번호 인증 후 insert
-      var registerUserQ = "INSERT INTO user(user_first_name, user_last_name, user_number) values (?,?,?);";
+      var registerUserQ = "INSERT INTO user(user_first_name, user_last_name, user_number,active) values (?,?,?,1);";
 
       connection.query(
         registerUserQ,
@@ -224,7 +224,6 @@ router.put('/update', (req, res) => {
     let decoded = jwt.verify(token, config.JWT.accessToken);
 
     if (decoded) {
-      //폴더 아이디 확인
       user.first_name = req.body.first_name
       user.last_name = req.body.last_name
       user.number = req.body.number
@@ -250,6 +249,46 @@ router.put('/update', (req, res) => {
       res.send({
         statusCode: 400,
         message: 'user update fail'
+      });
+    }
+  } catch (err) {
+    err.statusCode = 400;
+    res.send(err);
+  }
+});
+
+
+/* 회원정보 수정 */
+/* 수정정보 입력 > 회원 id 조회 > 수정 */
+router.put('/delete', (req, res) => {
+  try {
+    token = req.headers.token;
+
+    let decoded = jwt.verify(token, config.JWT.accessToken);
+
+    if (decoded) {
+
+      var sql = "UPDATE user set active=0 WHERE user_id= ?;"
+      try {
+        connection.query(sql,
+          [decoded.user_id],
+          (err, result, fields) => {
+            if (err) {
+              err.statusCode = 400;
+              res.send(err);
+            } else {
+              console.log(result);
+              res.send(result);
+            }
+          });
+      } catch (err) {
+        err.statusCode = 400;
+        res.send(err);
+      }
+    } else {
+      res.send({
+        statusCode: 400,
+        message: 'user delete fail'
       });
     }
   } catch (err) {

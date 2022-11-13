@@ -110,10 +110,9 @@ function generateAccessToken() {
 	})
 };
 
-router.post("/", (req, res) => {
+router.get("/", (req, res) => {
 
 	user.number = req.body.number
-	console.log("user", user);
 
 	//가입 체크
 	var registerCheckQ = 'SELECT * from user WHERE user_number = ?';
@@ -129,20 +128,30 @@ router.post("/", (req, res) => {
 				});
 			} else {
 				var keys = Object.keys(result);
+				//탈퇴한 회원일 때
+				console.log("reslt", result);
 
 				//회원 정보가 있을 때
 				if (keys.length != 0) {
-					user.first_name = result[0].user_first_name;
-					user.id = result[0].user_id;
-					console.log("user ", user);
+					if (result[0].active == 0) {
+						res.send({
+							statusCode: 400,
+							message: "탈퇴한 회원",
+						});
+					} else {
+						user.first_name = result[0].user_first_name;
+						user.id = result[0].user_id;
+						console.log("user ", user);
 
-					try {
-						await sendVerification()
-					} catch (err) {
-						console.log(err)
+						try {
+							await sendVerification()
+						} catch (err) {
+							console.log(err)
+						}
+
+						res.send(res_message);
 					}
 
-					res.send(res_message);
 
 				} else {
 					console.log("회원아님");
@@ -151,6 +160,8 @@ router.post("/", (req, res) => {
 						message: "회원아님",
 					});
 				}
+
+
 			}
 		}
 	)
