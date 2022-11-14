@@ -228,6 +228,12 @@ router.put('/update', (req, res) => {
   try {
     token = req.headers.token;
     check_body(req.body);
+    if (user.number.length < 11) {
+      var error = new Error();
+      error.message = 'number is wrong';
+      throw error;
+    }
+
 
     let decoded = jwt.verify(token, config.JWT.accessToken);
     if (decoded) {
