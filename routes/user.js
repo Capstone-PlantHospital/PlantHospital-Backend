@@ -9,6 +9,9 @@ var connection = require("../db");
 const {
   check_body
 } = require("../utils/func");
+const {
+  resSend
+} = require('../utils/resSend');
 
 let token = '';
 
@@ -121,7 +124,6 @@ router.get("/", (req, res) => {
       async function (err, result, fields) {
         if (err) {
           throw err;
-
         } else {
           var keys = Object.keys(result);
 
@@ -136,10 +138,12 @@ router.get("/", (req, res) => {
             res.send(res_message);
 
           } else {
-            res.send({
-              statusCode: 400,
-              message: "Number is duplicated",
-            });
+            resSend(res, 400, 'Number is duplicated');
+
+            // res.send({
+            //   statusCode: 400,
+            //   message: "Number is duplicated",
+            // });
           }
         }
       }
@@ -176,10 +180,12 @@ router.post("/match", function (req, res) {
         [user.first_name, user.last_name, user.number],
         function (err, result, fields) {
           console.log("insert 성공! The solution is: ", result);
-          res.send({
-            statusCode: 200,
-            message: "user registered sucessfully",
-          });
+          resSend(res, 200, 'user registered sucessfully');
+
+          // res.send({
+          //   statusCode: 200,
+          //   message: "user registered sucessfully",
+          // });
         }
       );
     } else {
@@ -205,6 +211,7 @@ router.get('/info', (req, res) => {
 
       connection.query(sql, [decoded.user_id], (err, result, fields) => {
         console.log(result);
+        result.statusCode = 200;
         res.send(result);
       });
     }

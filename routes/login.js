@@ -8,7 +8,12 @@ const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
 
 const connection = require("../db");
-
+const {
+	check_body
+} = require("../utils/func");
+const {
+	resSend
+} = require('../utils/resSend');
 
 
 dotenv.config();
@@ -111,90 +116,84 @@ function generateAccessToken() {
 };
 
 router.get("/", (req, res) => {
+	try {
+		check_body(req.body);
+		user.number = req.body.number
 
-	user.number = req.body.number
+		//가입 체크
+		var registerCheckQ = 'SELECT * from user WHERE user_number = ?';
 
-	//가입 체크
-	var registerCheckQ = 'SELECT * from user WHERE user_number = ?';
+		connection.query(
+			registerCheckQ, [user.number],
+			async function (err, result, fields) {
+				if (err) {
+					throw err;
+				} else {
+					var keys = Object.keys(result);
 
-	connection.query(
-		registerCheckQ, [user.number],
-		async function (err, result, fields) {
-			if (err) {
-				console.log("error ocurred - duplicate:", err);
-				res.send({
-					statusCode: 400,
-					message: "error ocurred",
-				});
-			} else {
-				var keys = Object.keys(result);
-				//탈퇴한 회원일 때
-				console.log("reslt", result);
+					//회원 정보가 있을 때
+					if (keys.length != 0) {
+						//탈퇴한 회원일 때
+						if (result[0].active == 0) {
+							resSend(res, 400, '탈퇴한회원');
 
-				//회원 정보가 있을 때
-				if (keys.length != 0) {
-					if (result[0].active == 0) {
-						res.send({
-							statusCode: 400,
-							message: "탈퇴한 회원",
-						});
-					} else {
-						user.first_name = result[0].user_first_name;
-						user.id = result[0].user_id;
-						console.log("user ", user);
+						} else {
+							user.first_name = result[0].user_first_name;
+							user.id = result[0].user_id;
 
-						try {
-							await sendVerification()
-						} catch (err) {
-							console.log(err)
+							try {
+								await sendVerification()
+							} catch (err) {
+								err.statusCode = 400;
+								res.send(err);
+							}
+							res.send(res_message);
 						}
+					} else {
+						resSend(res, 400, '회원 아님');
 
-						res.send(res_message);
 					}
 
 
-				} else {
-					console.log("회원아님");
-					res.send({
-						statusCode: 400,
-						message: "회원아님",
-					});
 				}
-
-
 			}
-		}
-	)
+		)
+
+	} catch (err) {
+		err.statusCode = 400;
+		res.send(err);
+	}
+
 });
 
 router.get("/match", (req, res) => {
+	try {
+		check_body(req.body);
+		const userVerficationCode = req.body.code; //사용자가 입력한 인증번호
+		// verificationCode = 1396
+		if (verificationCode == userVerficationCode) {
 
-	const userVerficationCode = req.body.code; //사용자가 입력한 인증번호
-	// verificationCode = 1396
-	if (verificationCode == userVerficationCode) {
-		//db에서 user 정보 가져오기
+			const token = generateAccessToken();
 
-		//로그인 토큰 
-		//refresh 같이발급후 디비저장. access만료시 db에서 refresh 조회 후 새 access 발급
-		const token = generateAccessToken();
+			console.log("Token :", token);
 
-		console.log("Token :", token);
-		// res.cookie('user_token', token, {
-		// 	maxAge: 30 * 60 * 1000
-		// });
-
-
-		res.send({
-			statusCode: 200,
-			message: "user login sucessfully",
-			token: token
-		});
-	} else {
-		res.send({
-			statusCode: 400,
-			message: "user login fail"
-		});
+			res.send({
+				statusCode: 200,
+				message: "user login sucessfully",
+				token: token
+			});
+		} else {
+			resSend(res, 400, 'user login fail');
+			// res.send({
+			// 	statusCode: 400,
+			// 	message: "user login fail"
+			// });
+		}
+	} catch (err) {
+		err.statusCode = 400;
+		res.send(err);
 	}
+
 });
 
 // router.get("/test", (req, res) => {

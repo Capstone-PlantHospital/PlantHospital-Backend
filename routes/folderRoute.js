@@ -7,6 +7,9 @@ var connection = require("../db");
 const {
 	check_body
 } = require("../utils/func");
+const {
+	resSend
+} = require('../utils/resSend');
 
 let token = '';
 var folder = {
@@ -64,10 +67,11 @@ router.post('/create', (req, res) => {
 
 			connection.query(sql, [folder.name, folder.type, folder.user_id], (err, result, fields) => {
 				console.log(result);
-				res.send({
-					statusCode: 200,
-					message: 'folder create sucessfully'
-				});
+				resSend(res, 200, 'folder create sucessfully');
+				// res.send({
+				// 	statusCode: 200,
+				// 	message: 'folder create sucessfully'
+				// });
 			});
 		}
 	} catch (err) {
@@ -110,10 +114,12 @@ router.put('/update', (req, res) => {
 				res.send(err);
 			}
 		} else {
-			res.send({
-				statusCode: 400,
-				message: 'folder update fail'
-			});
+			resSend(res, 400, 'folder update fail');
+
+			// res.send({
+			// 	statusCode: 400,
+			// 	message: 'folder update fail'
+			// });
 		}
 	} catch (err) {
 		err.statusCode = 400;
@@ -146,10 +152,11 @@ router.delete('/delete', (req, res) => {
 				}
 			});
 		} else {
-			res.send({
-				statusCode: 400,
-				message: 'folder delete fail'
-			});
+			resSend(res, 400, 'folder delete fail');
+			// res.send({
+			// 	statusCode: 400,
+			// 	message: 'folder delete fail'
+			// });
 		}
 	} catch (err) {
 		err.statusCode = 400;
