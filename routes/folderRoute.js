@@ -4,6 +4,9 @@ const jwt = require("jsonwebtoken");
 const config = require('../config.json');
 
 var connection = require("../db");
+const {
+	check_body
+} = require("../utils/func");
 
 let token = '';
 var folder = {
@@ -45,6 +48,9 @@ router.post('/create', (req, res) => {
 		token = req.headers.token;
 
 		let decoded = jwt.verify(token, config.JWT.accessToken);
+
+		check_body(req.body);
+
 		if (decoded) {
 			//user_id로 폴더 가져오기
 			console.log("user_id :", decoded.user_id);
@@ -72,16 +78,13 @@ router.post('/create', (req, res) => {
 
 
 
-
-
-
-
-
 /* 폴더 수정 */
 /* 수정정보 입력 > 폴더id 조회 > 수정 */
-router.post('/update', (req, res) => {
+router.put('/update', (req, res) => {
 	try {
 		token = req.headers.token;
+
+		check_body(req.body);
 
 		let decoded = jwt.verify(token, config.JWT.accessToken);
 
@@ -90,14 +93,15 @@ router.post('/update', (req, res) => {
 			folder.name = req.body.name
 			folder.id = req.body.folder_id
 
-			var sql = "UPDATE folder SET folder_name = ? WHERE folder_id = ?;"
+			var sql = "UPDATE folder SET folder_name = ? WHERE folder_id = ? and folder_user_id =?;"
 			try {
-				connection.query(sql, [folder.name, folder.id], (err, result, fields) => {
+				connection.query(sql, [folder.name, folder.id, decoded.user_id], (err, result, fields) => {
 					if (err) {
 						err.statusCode = 400;
 						res.send(err);
 					} else {
 						console.log(result);
+						result.statusCode = 200;
 						res.send(result);
 					}
 				});
@@ -124,10 +128,10 @@ router.delete('/delete', (req, res) => {
 		token = req.headers.token;
 
 		let decoded = jwt.verify(token, config.JWT.accessToken);
+		check_body(req.query);
 
 		if (decoded) {
 			//폴더 아이디 확인
-			// folder.id = req.body.folder_id
 			folder.id = req.query.id
 
 			var sql = "DELETE FROM folder WHERE folder_id =? AND folder_user_id =?;"
@@ -137,6 +141,7 @@ router.delete('/delete', (req, res) => {
 					res.send(err);
 				} else {
 					console.log(result);
+					result.statusCode = 200;
 					res.send(result);
 				}
 			});

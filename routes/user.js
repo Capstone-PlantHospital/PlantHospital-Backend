@@ -6,6 +6,9 @@ const axios = require("axios");
 const jwt = require("jsonwebtoken");
 
 var connection = require("../db");
+const {
+  check_body
+} = require("../utils/func");
 
 let token = '';
 
@@ -96,76 +99,73 @@ var sendVerification = async (req, res) => {
 
 //회원가입
 router.get("/", (req, res) => {
+  try {
 
-  user.first_name = req.body.first_name
-  user.last_name = req.body.last_name
-  user.number = req.body.number
-  if (user.number.length < 11) {
-    res.send({
-      statusCode: 400,
-      message: "number is wrong"
-    });
-    return
-  }
+    check_body(req.body);
 
-  //중복체크
-  var duplicateCheckQ = 'SELECT * from user WHERE user_number = ?';
+    user.first_name = req.body.first_name
+    user.last_name = req.body.last_name
+    user.number = req.body.number
 
-  connection.query(
-    duplicateCheckQ, [user.number],
-    async function (err, result, fields) {
-      if (err) {
-        console.log("error ocurred - duplicate:", err);
-        res.send({
-          statusCode: 400,
-          message: "error ocurred",
-        });
-      } else {
-        var keys = Object.keys(result);
+    if (user.number.length < 11) {
+      var error = new Error();
+      error.message = 'number is wrong';
+      throw error;
+    }
 
-        //중복 아닐때
-        if (keys.length == 0) {
+    //중복체크
+    var duplicateCheckQ = 'SELECT * from user WHERE user_number = ?';
 
-          try {
-            await sendVerification()
-          } catch (err) {
-            console.log(err)
-          }
-
-          res.send(res_message);
+    connection.query(
+      duplicateCheckQ, [user.number],
+      async function (err, result, fields) {
+        if (err) {
+          throw err;
 
         } else {
-          console.log("중복임");
-          res.send({
-            statusCode: 400,
-            message: "중복",
-          });
+          var keys = Object.keys(result);
+
+          //중복 아닐때
+          if (keys.length == 0) {
+            try {
+              await sendVerification()
+            } catch (err) {
+              console.log(err)
+            }
+
+            res.send(res_message);
+
+          } else {
+            res.send({
+              statusCode: 400,
+              message: "Number is duplicated",
+            });
+          }
         }
       }
-    }
-  )
+    )
+  } catch (err) {
+    err.statusCode = 400;
+    res.send(err);
+  }
 });
 
 
 //인증번호 확인
 router.post("/match", function (req, res) {
   try {
+    check_body(req.body);
+
     const userVerficationCode = req.body.code; //사용자가 입력한 인증번호
     user.first_name = req.body.first_name
     user.last_name = req.body.last_name
     user.number = req.body.number
 
     if (user.number.length < 11) {
-      res.send({
-        statusCode: 400,
-        message: "number is wrong"
-      });
-      return
+      var error = new Error();
+      error.message = 'number is wrong';
+      throw error;
     }
-
-    console.log("code: ", verificationCode, "user code:", userVerficationCode)
-    console.log("user first :", user.first_name, "user last:", user.last_name, " number :", user.number)
-
 
     if (verificationCode == userVerficationCode) {
       //번호 인증 후 insert
@@ -220,36 +220,30 @@ router.get('/info', (req, res) => {
 router.put('/update', (req, res) => {
   try {
     token = req.headers.token;
+    check_body(req.body);
 
     let decoded = jwt.verify(token, config.JWT.accessToken);
-
     if (decoded) {
       user.first_name = req.body.first_name
       user.last_name = req.body.last_name
       user.number = req.body.number
 
       var sql = "UPDATE user SET user_first_name = ?, user_last_name = ?, user_number=? WHERE user_id= ?;"
-      try {
-        connection.query(sql,
-          [user.first_name, user.last_name, user.number, decoded.user_id],
-          (err, result, fields) => {
-            if (err) {
-              err.statusCode = 400;
-              res.send(err);
-            } else {
-              console.log(result);
-              res.send(result);
-            }
-          });
-      } catch (err) {
-        err.statusCode = 400;
-        res.send(err);
-      }
-    } else {
-      res.send({
-        statusCode: 400,
-        message: 'user update fail'
-      });
+
+      connection.query(sql,
+        [user.first_name, user.last_name, user.number, decoded.user_id],
+        (err, result, fields) => {
+          if (err) {
+            err.statusCode = 400;
+            res.send(err);
+
+          } else {
+            console.log(result);
+            result.statusCode = 200;
+            res.send(result);
+          }
+        });
+
     }
   } catch (err) {
     err.statusCode = 400;
@@ -258,8 +252,7 @@ router.put('/update', (req, res) => {
 });
 
 
-/* 회원정보 수정 */
-/* 수정정보 입력 > 회원 id 조회 > 수정 */
+/* 회원 탈퇴 */
 router.put('/delete', (req, res) => {
   try {
     token = req.headers.token;
@@ -269,27 +262,20 @@ router.put('/delete', (req, res) => {
     if (decoded) {
 
       var sql = "UPDATE user set active=0 WHERE user_id= ?;"
-      try {
-        connection.query(sql,
-          [decoded.user_id],
-          (err, result, fields) => {
-            if (err) {
-              err.statusCode = 400;
-              res.send(err);
-            } else {
-              console.log(result);
-              res.send(result);
-            }
-          });
-      } catch (err) {
-        err.statusCode = 400;
-        res.send(err);
-      }
-    } else {
-      res.send({
-        statusCode: 400,
-        message: 'user delete fail'
-      });
+
+      connection.query(sql,
+        [decoded.user_id],
+        (err, result, fields) => {
+          if (err) {
+            err.statusCode = 400;
+            res.send(err);
+          } else {
+            console.log(result);
+            result.statusCode = 200;
+            res.send(result);
+          }
+        });
+
     }
   } catch (err) {
     err.statusCode = 400;
