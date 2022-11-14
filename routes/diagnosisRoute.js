@@ -5,7 +5,20 @@ const config = require('../config.json');
 
 var connection = require("../db");
 
-// const multer = require('multer');
+const app = express();
+
+var multer = require('multer');
+var upload = multer({
+	dest: '../uploads/'
+});
+
+// var multer = require('multer');
+// const upload = require('multer')();
+app.use(upload.array()); //이게 formdata를 파싱해준다고합니다.
+app.use(express.urlencoded({
+	extended: false
+}));
+app.use(express.json());
 
 let token = '';
 
@@ -194,57 +207,66 @@ router.delete('/delete', (req, res) => {
 
 
 
-// var _storage = multer.diskStorage({
-// 	destination: 'uploads/',
-// 	filename: function (req, file, cb) {
-// 		return crypto.pseudoRandomBytes(16, function (err, raw) {
-// 			if (err) {
-// 				return cb(err);
-// 			}
-// 			return cb(null, file.originalname);
-// 		});
-// 	}
-// });
+var _storage = multer.diskStorage({
+	destination: 'uploads/',
+	filename: function (req, file, cb) {
+		return crypto.pseudoRandomBytes(16, function (err, raw) {
+			if (err) {
+				return cb(err);
+			}
+			return cb(null, file.originalname);
+		});
+	}
+});
 
 
-// function readImageFile(file) {
-// 	const bitmap = fs.readFileSync(file);
-// 	const buf = new Buffer.from(bitmap)
-// 	return buf
-// }
+function readImageFile(file) {
+	const bitmap = fs.readFileSync(file);
+	const buf = new Buffer.from(bitmap)
+	return buf
+}
 
-// /* 진단기록 생성 */
-// router.post('/test', (req, res) => {
-// 	try {
-
-// 		let id = req.body.id;
-// 		diagnosis.image = req.body.file;
-// 		if (file) {
-// 			originalName = file.originalname;
-// 			filename = file.fileName
-// 			mimeType = file.mimetype;
-// 			size = file.size;
-// 		} else {}
-// 		let imgData = readImageFile(`./uploads/tempImg.png`)
+/* 진단기록 생성 */
+router.post('/test', upload.array("file", 10), (req, res) => {
+	try {
 
 
-// 		var sql = "INSERT INTO test(id, image) values(?,?);";
+		let file = req.file;
+		let originalName = '';
+		let fileName = '';
+		let mimeType = '';
+		let size = 0;
+		console.log("img", file);
 
-// 		connection.query(sql,
-// 			[id, diagnosis.image],
-// 			(err, result, fields) => {
-// 				console.log(result);
-// 				res.send({
-// 					statusCode: 200,
-// 					message: 'diagnosis create sucessfully'
-// 				});
-// 			});
+		if (file) {
+			originalName = file.originalname;
+			filename = file.fileName
+			mimeType = file.mimetype;
+			size = file.size;
+		} else {}
+		let imgData = readImageFile(`./uploads/tempImg.png`)
+		console.log(1);
+		console.log("imagedata", imgData);
 
-// 	} catch (err) {
-// 		err.statusCode = 400;
-// 		res.send(err);
-// 	}
-// });
+
+
+		// var sql = "INSERT INTO test(id, image) values(?,?);";
+
+		// connection.query(sql,
+		// 	[id, diagnosis.image],
+		// 	(err, result, fields) => {
+		// 		console.log(result);
+		// 		res.send({
+		// 			statusCode: 200,
+		// 			message: 'diagnosis create sucessfully'
+		// 		});
+		// 	});
+
+	} catch (err) {
+		err.statusCode = 400;
+		res.send(err);
+	}
+});
 
 
 

@@ -1,6 +1,7 @@
 var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
+var bodyParser = require('body-parser');
 var logger = require("morgan");
 
 
@@ -24,6 +25,7 @@ app.use(express.urlencoded({
 }));
 app.use(cookieParser('adsadfd'));
 app.use(express.static(path.join(__dirname, "public")));
+
 
 app.use("/", indexRouter);
 
