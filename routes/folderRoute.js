@@ -6,7 +6,7 @@ const config = require('../config.json');
 var connection = require("../db");
 const {
 	check_body
-} = require("../utils/func");
+} = require("../utils/checkBody");
 const {
 	resSend
 } = require('../utils/resSend');

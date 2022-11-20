@@ -8,28 +8,42 @@ var connection = require("../db");
 const app = express();
 
 var multer = require('multer');
-var upload = multer({
-	dest: '../uploads/'
+var path = require("path");
+var storage = multer.diskStorage({
+	destination: function (req, file, cb) {
+		cb(null, "../uploads/");
+	},
+	filename: function (req, file, cb) {
+		const ext = path.extname(file.originalname);
+		cb(null, path.basename(file.originalname, ext) + "-" + Date.now() + ext);
+	},
 });
 
-// var multer = require('multer');
-// const upload = require('multer')();
-app.use(upload.array()); //이게 formdata를 파싱해준다고합니다.
-app.use(express.urlencoded({
-	extended: false
-}));
-app.use(express.json());
+var upload = multer({
+	storage: storage
+});
+// var upload = multer({
+// 	dest: '../uploads/',
+// });
+
+const {
+	check_body
+} = require("../utils/checkBody");
+const {
+	resSend
+} = require('../utils/resSend');
+
+
 
 let token = '';
 
 var diagnosis = {
 	diagnosis_id: '',
+	folder_id: '',
 	diagnosis_type: '',
-	disease_id: '',
 	disease_name: '',
 	disease_scale: '',
-	folder_id: '',
-	image: ''
+	disease_img: ''
 }
 
 
@@ -37,9 +51,11 @@ var diagnosis = {
 router.get('/list', (req, res) => {
 	try {
 		token = req.headers.token;
-		diagnosis.folder_id = req.body.folder_id
+		check_body(req.body);
+
 		let decoded = jwt.verify(token, config.JWT.accessToken);
 		if (decoded) {
+			diagnosis.folder_id = req.body.folder_id
 			var sql = "SELECT * from diagnosis WHERE diagnosis_folder_id = ?";
 			try {
 				connection.query(sql, [diagnosis.folder_id], (err, result, fields) => {
@@ -50,10 +66,7 @@ router.get('/list', (req, res) => {
 				res.send(err);
 			}
 		} else {
-			res.send({
-				statusCode: 400,
-				message: "get diagnosis fail",
-			});
+			resSend(res, 400, 'get diagnosis fail');
 		}
 
 	} catch (err) {
@@ -69,6 +82,7 @@ router.get('/list', (req, res) => {
 router.post('/create', (req, res) => {
 	try {
 		token = req.headers.token;
+		check_body(req.body);
 
 		let decoded = jwt.verify(token, config.JWT.accessToken);
 
@@ -76,34 +90,26 @@ router.post('/create', (req, res) => {
 		var date = (JSON.stringify(new Date())).substring(1, 11);
 		console.log("date", date);
 
-		// 1. 폴더 아이디 가져오면 타입 안받아도 됨
-		// 2. 질병 아이디 받아오면 질병 이름도 안받아도 될 듯
-		// 3. 진단기록에 사진도 저장해야됨
 		diagnosis.folder_id = req.body.folder_id;
 		diagnosis.diagnosis_type = req.body.diagnosis_type;
-		diagnosis.disease_id = req.body.disease_id;
 		diagnosis.disease_name = req.body.disease_name;
 		diagnosis.disease_scale = req.body.disease_scale;
+		diagnosis.disease_img = req.body.disease_img;
+
 
 		if (decoded) {
 
-			var sql = "INSERT INTO diagnosis(diagnosis_folder_id, diagnosis_type, diagnosis_date, disease_id, disease_name, disease_scale) \
+			var sql = "INSERT INTO diagnosis(diagnosis_folder_id, diagnosis_type, diagnosis_date,   disease_name, disease_scale, disease_img ) \
 					values (?,?,?,?,?,?);";
 
 			connection.query(sql,
-				[diagnosis.folder_id, diagnosis.diagnosis_type, date, diagnosis.disease_id, diagnosis.disease_name, diagnosis.disease_scale],
+				[diagnosis.folder_id, diagnosis.diagnosis_type, date, diagnosis.disease_name, diagnosis.disease_scale, diagnosis.disease_img],
 				(err, result, fields) => {
 					console.log(result);
-					res.send({
-						statusCode: 200,
-						message: 'diagnosis create sucessfully'
-					});
+					resSend(res, 200, 'diagnosis create sucessfully');
 				});
 		} else {
-			res.send({
-				statusCode: 400,
-				message: 'diagnosis create fail'
-			});
+			resSend(res, 400, 'diagnosis create fail');
 		}
 	} catch (err) {
 		err.statusCode = 400;
@@ -221,32 +227,39 @@ var _storage = multer.diskStorage({
 
 
 function readImageFile(file) {
+	console.log(3);
+
 	const bitmap = fs.readFileSync(file);
 	const buf = new Buffer.from(bitmap)
+	console.log("buf", buf);
 	return buf
 }
 
 /* 진단기록 생성 */
-router.post('/test', upload.array("file", 10), (req, res) => {
+router.post('/test', upload.single('img'), (req, res) => {
 	try {
-
-
+		console.log("img");
 		let file = req.file;
+		console.log("img", file);
+
+
 		let originalName = '';
 		let fileName = '';
 		let mimeType = '';
 		let size = 0;
-		console.log("img", file);
 
 		if (file) {
 			originalName = file.originalname;
 			filename = file.fileName
 			mimeType = file.mimetype;
 			size = file.size;
-		} else {}
-		let imgData = readImageFile(`./uploads/tempImg.png`)
+		} else {
+
+		}
 		console.log(1);
-		console.log("imagedata", imgData);
+		console.log("img", originalName);
+
+		console.log(2);
 
 
 

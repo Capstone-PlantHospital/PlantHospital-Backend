@@ -10,7 +10,7 @@ const jwt = require("jsonwebtoken");
 const connection = require("../db");
 const {
 	check_body
-} = require("../utils/func");
+} = require("../utils/checkBody");
 const {
 	resSend
 } = require('../utils/resSend');
