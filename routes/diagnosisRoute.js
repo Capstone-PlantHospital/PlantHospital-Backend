@@ -5,27 +5,6 @@ const config = require('../config.json');
 
 var connection = require("../db");
 
-const app = express();
-
-var multer = require('multer');
-var path = require("path");
-var storage = multer.diskStorage({
-	destination: function (req, file, cb) {
-		cb(null, "../uploads/");
-	},
-	filename: function (req, file, cb) {
-		const ext = path.extname(file.originalname);
-		cb(null, path.basename(file.originalname, ext) + "-" + Date.now() + ext);
-	},
-});
-
-var upload = multer({
-	storage: storage
-});
-// var upload = multer({
-// 	dest: '../uploads/',
-// });
-
 const {
 	check_body
 } = require("../utils/checkBody");
@@ -161,6 +140,7 @@ router.put('/update', (req, res) => {
 	}
 });
 
+
 /* 진단기록 삭제 */
 /* 진단기록 삭제 > 진단기록 id 조회 > 기록 삭제 */
 router.delete('/delete', (req, res) => {
@@ -182,9 +162,8 @@ router.delete('/delete', (req, res) => {
 						res.send(err);
 					} else {
 						console.log(result);
-						console.log(result);
 						if (result.affectedRows <= 0) {
-							resSend(res, 400, 'diagnosis update fail')
+							resSend(res, 400, 'diagnosis delete fail')
 						} else {
 							res.send(result)
 						}
@@ -201,111 +180,4 @@ router.delete('/delete', (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-var _storage = multer.diskStorage({
-	destination: 'uploads/',
-	filename: function (req, file, cb) {
-		return crypto.pseudoRandomBytes(16, function (err, raw) {
-			if (err) {
-				return cb(err);
-			}
-			return cb(null, file.originalname);
-		});
-	}
-});
-
-
-function readImageFile(file) {
-	console.log(3);
-
-	const bitmap = fs.readFileSync(file);
-	const buf = new Buffer.from(bitmap)
-	console.log("buf", buf);
-	return buf
-}
-
-/* 진단기록 생성 */
-router.post('/test', upload.single('img'), (req, res) => {
-	try {
-		console.log("img");
-		let file = req.file;
-		console.log("img", file);
-
-
-		let originalName = '';
-		let fileName = '';
-		let mimeType = '';
-		let size = 0;
-
-		if (file) {
-			originalName = file.originalname;
-			filename = file.fileName
-			mimeType = file.mimetype;
-			size = file.size;
-		} else {
-
-		}
-		console.log(1);
-		console.log("img", originalName);
-
-		console.log(2);
-
-
-
-		// var sql = "INSERT INTO test(id, image) values(?,?);";
-
-		// connection.query(sql,
-		// 	[id, diagnosis.image],
-		// 	(err, result, fields) => {
-		// 		console.log(result);
-		// 		res.send({
-		// 			statusCode: 200,
-		// 			message: 'diagnosis create sucessfully'
-		// 		});
-		// 	});
-
-	} catch (err) {
-		err.statusCode = 400;
-		res.send(err);
-	}
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
 module.exports = router;
-
-
-
-
-/*
-이미지 서버 업로드 동시 서버에서 학습모델 결과예측 후 서버저장 사용자에게 보냄
-겟 사용. 매개변수 파일이름. 클라이언트에서 보내줌(유니크키) 
-api 서버 보안 문제 : api key  설정하여 보안성 높임
-
-디비 아마존 rds 사용
-
-갤러리에서 직접 경로로 사진접근 불가능 서버랑 바로 통신..? 무슨말인지 모르겠음
-
-*/
