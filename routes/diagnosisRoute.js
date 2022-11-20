@@ -12,7 +12,8 @@ const {
 	resSend
 } = require('../utils/resSend');
 
-
+let Id_folder = [];
+let Id_diagnosis = [];
 
 let token = '';
 
@@ -55,6 +56,8 @@ router.get('/list', (req, res) => {
 });
 
 
+/* 같은 작물 종류의 폴더 리스트 가져오기 */
+
 
 /* 진단기록 생성 */
 router.post('/create', (req, res) => {
@@ -93,11 +96,6 @@ router.post('/create', (req, res) => {
 		res.send(err);
 	}
 });
-
-
-
-/* 같은 작물 종류의 폴더 리스트 가져오기 */
-
 
 
 /* 진단기록 수정 */
@@ -178,6 +176,117 @@ router.delete('/delete', (req, res) => {
 	}
 });
 
+
+function delete_list() {
+	Id_diagnosis = []
+	Id_folder = []
+	console.log("Id_folder = ", Id_folder);
+	console.log("Id_diagnosis = ", Id_diagnosis);
+
+}
+
+/* 진단기록 랜덤으로 가져오기 1 */
+router.get('/random', (req, res, next) => {
+	try {
+		token = req.headers.token;
+
+		let decoded = jwt.verify(token, config.JWT.accessToken);
+		if (decoded) {
+
+			user_id = decoded.user_id;
+			var sql = "SELECT folder_id from folder WHERE folder_user_id = ?";
+			try {
+				connection.query(sql, user_id, (err, result, fields) => {
+					if (result.length == 0) {
+						resSend(res, 200, 'NOTHING');
+					} else {
+						for (const item of result) {
+							Id_folder.push(item.folder_id)
+						}
+						next();
+					}
+				});
+			} catch (err) {
+				delete_list()
+				res.send(err);
+			}
+		} else {
+			resSend(res, 400, 'get diagnosis fail');
+		}
+	} catch (err) {
+		delete_list()
+		err.statusCode = 400;
+		res.send(err);
+	}
+});
+
+
+
+/* 진단기록 랜덤으로 가져오기 2 */
+router.get('/random', (req, res, next) => {
+	try {
+		token = req.headers.token;
+
+		var sql = "SELECT diagnosis_id from diagnosis WHERE diagnosis_folder_id in (?";
+		for (let i = 0; i < Id_folder.length - 1; i++) {
+			sql += ', ?';
+		}
+		sql += ');'
+
+		console.log("sql = ", sql);
+
+		try {
+			connection.query(sql, Id_folder, (err, result, fields) => {
+				if (result.length == 0) {
+					resSend(res, 200, 'NOTHING');
+					delete_list()
+				} else {
+					for (const item of result) {
+						Id_diagnosis.push(item.diagnosis_id)
+					}
+					next();
+				}
+			});
+		} catch (err) {
+			delete_list()
+			res.send(err);
+		}
+	} catch (err) {
+		delete_list()
+		err.statusCode = 400;
+		res.send(err);
+	}
+});
+
+
+/* 진단기록 랜덤으로 가져오기 3 */
+router.get('/random', (req, res, next) => {
+	try {
+		token = req.headers.token;
+
+		let id = Math.floor(Math.random() * ((Id_diagnosis.length - 1) - 0)) + 0;
+		console.log("id -", id)
+
+		var sql = "SELECT * from diagnosis WHERE diagnosis_id = ?";
+		try {
+			connection.query(sql, [Id_diagnosis[id]], (err, result, fields) => {
+				console.log(result);
+				res.send(result);
+
+			});
+		} catch (err) {
+			delete_list()
+			res.send(err);
+		}
+
+		delete_list()
+
+	} catch (err) {
+		delete_list()
+		err.statusCode = 400;
+		res.send(err);
+	}
+});
 
 
 module.exports = router;
