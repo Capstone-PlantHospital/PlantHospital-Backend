@@ -184,10 +184,6 @@ router.get("/match", (req, res) => {
 			});
 		} else {
 			resSend(res, 400, 'user login fail');
-			// res.send({
-			// 	statusCode: 400,
-			// 	message: "user login fail"
-			// });
 		}
 	} catch (err) {
 		err.statusCode = 400;

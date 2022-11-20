@@ -23,7 +23,6 @@ var folder = {
 router.get('/list', (req, res) => {
 	try {
 		token = req.headers.token;
-		// token = req.cookies.user_token;
 		console.log(token)
 
 		let decoded = jwt.verify(token, config.JWT.accessToken);
@@ -68,10 +67,6 @@ router.post('/create', (req, res) => {
 			connection.query(sql, [folder.name, folder.type, folder.user_id], (err, result, fields) => {
 				console.log(result);
 				resSend(res, 200, 'folder create sucessfully');
-				// res.send({
-				// 	statusCode: 200,
-				// 	message: 'folder create sucessfully'
-				// });
 			});
 		}
 	} catch (err) {
@@ -115,11 +110,6 @@ router.put('/update', (req, res) => {
 			}
 		} else {
 			resSend(res, 400, 'folder update fail');
-
-			// res.send({
-			// 	statusCode: 400,
-			// 	message: 'folder update fail'
-			// });
 		}
 	} catch (err) {
 		err.statusCode = 400;
@@ -153,10 +143,6 @@ router.delete('/delete', (req, res) => {
 			});
 		} else {
 			resSend(res, 400, 'folder delete fail');
-			// res.send({
-			// 	statusCode: 400,
-			// 	message: 'folder delete fail'
-			// });
 		}
 	} catch (err) {
 		err.statusCode = 400;

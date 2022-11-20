@@ -46,16 +46,15 @@ var diagnosis = {
 	disease_img: ''
 }
 
-
 /* 진단기록 폴더별 리스트 */
 router.get('/list', (req, res) => {
 	try {
 		token = req.headers.token;
-		check_body(req.body);
+		check_body(req.query);
 
 		let decoded = jwt.verify(token, config.JWT.accessToken);
 		if (decoded) {
-			diagnosis.folder_id = req.body.folder_id
+			diagnosis.folder_id = req.query.folder_id
 			var sql = "SELECT * from diagnosis WHERE diagnosis_folder_id = ?";
 			try {
 				connection.query(sql, [diagnosis.folder_id], (err, result, fields) => {
@@ -96,7 +95,6 @@ router.post('/create', (req, res) => {
 		diagnosis.disease_scale = req.body.disease_scale;
 		diagnosis.disease_img = req.body.disease_img;
 
-
 		if (decoded) {
 
 			var sql = "INSERT INTO diagnosis(diagnosis_folder_id, diagnosis_type, diagnosis_date,   disease_name, disease_scale, disease_img ) \
@@ -125,16 +123,16 @@ router.post('/create', (req, res) => {
 
 /* 진단기록 수정 */
 /* 수정정보 입력(수량, 폴더 변경) > 진단기록 id 조회 > 수정 */
-router.post('/update', (req, res) => {
+router.put('/update', (req, res) => {
 	try {
 		token = req.headers.token;
+		check_body(req.body);
 
 		let decoded = jwt.verify(token, config.JWT.accessToken);
 
 		if (decoded) {
-			//폴더 아이디 확인
-			diagnosis.folder_id = req.body.folder_id
 			diagnosis.diagnosis_id = req.body.diagnosis_id
+			diagnosis.folder_id = req.body.folder_id
 			diagnosis.disease_scale = req.body.disease_scale
 
 			//여기서 수정할 폴더의 작물종류와 진단기록의 작물 종류를 확인해야함.
@@ -147,14 +145,15 @@ router.post('/update', (req, res) => {
 						res.send(err);
 					} else {
 						console.log(result);
-						res.send(result);
+						if (result.affectedRows <= 0) {
+							resSend(res, 400, 'diagnosis update fail')
+						} else {
+							res.send(result)
+						}
 					}
 				});
 		} else {
-			res.send({
-				statusCode: 400,
-				message: 'diagnosis update fail'
-			});
+			resSend(res, 400, 'diagnosis update fail')
 		}
 	} catch (err) {
 		err.statusCode = 400;
@@ -167,12 +166,12 @@ router.post('/update', (req, res) => {
 router.delete('/delete', (req, res) => {
 	try {
 		token = req.headers.token;
+		check_body(req.query);
 
 		let decoded = jwt.verify(token, config.JWT.accessToken);
 
 		if (decoded) {
-			//폴더 아이디 확인
-			diagnosis.diagnosis_id = req.query.id
+			diagnosis.diagnosis_id = req.query.diagnosis_id
 
 			var sql = "DELETE FROM diagnosis WHERE diagnosis_id =?;"
 			connection.query(sql,
@@ -183,14 +182,16 @@ router.delete('/delete', (req, res) => {
 						res.send(err);
 					} else {
 						console.log(result);
-						res.send(result);
+						console.log(result);
+						if (result.affectedRows <= 0) {
+							resSend(res, 400, 'diagnosis update fail')
+						} else {
+							res.send(result)
+						}
 					}
 				});
 		} else {
-			res.send({
-				statusCode: 400,
-				message: 'diagnosis delete fail'
-			});
+			resSend(res, 400, 'diagnosis delete fail')
 		}
 	} catch (err) {
 		err.statusCode = 400;
