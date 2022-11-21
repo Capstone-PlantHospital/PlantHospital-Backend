@@ -177,11 +177,16 @@ router.delete('/delete', (req, res) => {
 });
 
 
+
+
+
 function delete_list() {
-	Id_diagnosis = []
-	Id_folder = []
+
 	console.log("Id_folder = ", Id_folder);
 	console.log("Id_diagnosis = ", Id_diagnosis);
+	Id_diagnosis = []
+	Id_folder = []
+	console.log("Id_folder = ", Id_folder, "Id_diagnosis = ", Id_diagnosis);
 
 }
 
@@ -263,8 +268,9 @@ router.get('/random', (req, res, next) => {
 router.get('/random', (req, res, next) => {
 	try {
 		token = req.headers.token;
+		console.log("Id_diagnosis.length", Id_diagnosis.length);
 
-		let id = Math.floor(Math.random() * ((Id_diagnosis.length - 1) - 0)) + 0;
+		let id = Math.floor(Math.random() * (Id_diagnosis.length));
 		console.log("id -", id)
 
 		var sql = "SELECT * from diagnosis WHERE diagnosis_id = ?";
