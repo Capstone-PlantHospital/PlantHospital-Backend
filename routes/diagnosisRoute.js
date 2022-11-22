@@ -56,8 +56,6 @@ router.get('/list', (req, res) => {
 });
 
 
-/* 같은 작물 종류의 폴더 리스트 가져오기 */
-
 
 /* 진단기록 생성 */
 router.post('/create', (req, res) => {

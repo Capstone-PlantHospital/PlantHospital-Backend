@@ -44,6 +44,35 @@ router.get('/list', (req, res) => {
 });
 
 
+
+/* 같은 작물 종류의 폴더 리스트 가져오기 */
+router.get('/type', (req, res) => {
+	try {
+		token = req.headers.token;
+
+		check_body(req.query)
+
+		let decoded = jwt.verify(token, config.JWT.accessToken);
+		if (decoded) {
+			console.log("user_id :", decoded.user_id)
+
+			folder.type = req.query.type;
+
+			var sql = "SELECT * FROM folder where folder_user_id = ? AND folder_type = ?;";
+
+			connection.query(sql, [decoded.user_id, folder.type], (err, result, fields) => {
+				console.log(result);
+				res.send(result);
+			});
+		}
+	} catch (err) {
+		err.statusCode = 400;
+		res.send(err);
+	}
+});
+
+
+
 /* 폴더 생성 */
 router.post('/create', (req, res) => {
 	try {
