@@ -158,12 +158,12 @@ router.get("/", (req, res) => {
 //인증번호 확인
 router.post("/match", function (req, res) {
   try {
-    check_body(req.query);
+    check_body(req.body);
 
-    const userVerficationCode = req.query.code; //사용자가 입력한 인증번호
-    user.first_name = req.query.first_name
-    user.last_name = req.query.last_name
-    user.number = req.query.number
+    const userVerficationCode = req.body.code; //사용자가 입력한 인증번호
+    user.first_name = req.body.first_name
+    user.last_name = req.body.last_name
+    user.number = req.body.number
 
     if (user.number.length < 11) {
       var error = new Error();
