@@ -117,8 +117,8 @@ function generateAccessToken() {
 
 router.get("/", (req, res) => {
 	try {
-		check_body(req.body);
-		user.number = req.body.number
+		check_body(req.query);
+		user.number = req.query.number
 
 		//가입 체크
 		var registerCheckQ = 'SELECT * from user WHERE user_number = ?';
@@ -136,6 +136,11 @@ router.get("/", (req, res) => {
 						//탈퇴한 회원일 때
 						if (result[0].active == 0) {
 							resSend(res, 400, '탈퇴한회원');
+
+						}
+						//관리자인 경우
+						if (result[0].admin == 1) {
+							resSend(res, 200, '관리자');
 
 						} else {
 							user.first_name = result[0].user_first_name;
@@ -168,8 +173,8 @@ router.get("/", (req, res) => {
 
 router.get("/match", (req, res) => {
 	try {
-		check_body(req.body);
-		const userVerficationCode = req.body.code; //사용자가 입력한 인증번호
+		check_body(req.query);
+		const userVerficationCode = req.query.code; //사용자가 입력한 인증번호
 		// verificationCode = 1396
 		if (verificationCode == userVerficationCode) {
 

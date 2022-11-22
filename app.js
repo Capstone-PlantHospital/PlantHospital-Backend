@@ -11,6 +11,7 @@ var usersRouter = require("./routes/user");
 var loginRouter = require("./routes/login");
 var folderRouter = require("./routes/folderRoute");
 var diagnosisRouter = require("./routes/diagnosisRoute");
+var adminRouter = require("./routes/adminRoute");
 
 const config = require('./config.json');
 
@@ -33,5 +34,6 @@ app.use("/login", loginRouter);
 
 app.use("/folder", folderRouter);
 app.use("/diagnosis", diagnosisRouter);
+app.use("/admin", adminRouter);
 
 module.exports = app;
