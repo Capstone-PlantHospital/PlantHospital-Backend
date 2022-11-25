@@ -95,16 +95,18 @@ router.post('/create', (req, res) => {
 		diagnosis.disease_scale = req.body.disease_scale;
 		diagnosis.disease_img = req.body.disease_img;
 
+
 		if (decoded) {
 
 			var sql = "INSERT INTO diagnosis(diagnosis_folder_id, diagnosis_type, diagnosis_date,   disease_name, disease_scale, disease_img ) \
 					values (?,?,?,?,?,?);";
+			console.log(diagnosis)
 
 			connection.query(sql,
 				[diagnosis.folder_id, diagnosis.diagnosis_type, date, diagnosis.disease_name, diagnosis.disease_scale, diagnosis.disease_img],
 				(err, result, fields) => {
 					console.log(result);
-					// resSend(res, 200, 'diagnosis create sucessfully');
+					result[0].statusCode = 202;
 					res.send(result);
 				});
 		} else {
