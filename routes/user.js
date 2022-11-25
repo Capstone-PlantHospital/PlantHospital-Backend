@@ -190,7 +190,7 @@ router.post("/match", function (req, res) {
       );
     } else {
       var error = new Error();
-      error.message = 'code is wrong';
+      error.message = 'code is wrong '+verificationCode;
       throw error;
     }
   } catch (err) {
