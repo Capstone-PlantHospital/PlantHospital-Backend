@@ -146,7 +146,8 @@ router.put('/update', (req, res) => {
 						if (result.affectedRows <= 0) {
 							resSend(res, 400, 'diagnosis update fail')
 						} else {
-							res.send(result)
+							result.statusCode = 202;
+							res.send(result);
 						}
 					}
 				});
@@ -184,7 +185,8 @@ router.delete('/delete', (req, res) => {
 						if (result.affectedRows <= 0) {
 							resSend(res, 400, 'diagnosis delete fail')
 						} else {
-							res.send(result)
+							result.statusCode = 202;
+							res.send(result);
 						}
 					}
 				});
