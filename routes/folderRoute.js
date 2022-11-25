@@ -45,7 +45,7 @@ router.get('/list', (req, res) => {
 
 
 
-/* 같은 작물 종류의 폴더 리스트 가져오기 */
+/* 작물별 폴더 리스트 가져오기 */
 router.get('/type', (req, res) => {
 	try {
 		token = req.headers.token;

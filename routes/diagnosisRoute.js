@@ -1,6 +1,9 @@
 var express = require("express");
 var router = express.Router();
 const jwt = require("jsonwebtoken");
+const {
+	del
+} = require("memory-cache");
 const config = require('../config.json');
 
 var connection = require("../db");
@@ -26,6 +29,22 @@ var diagnosis = {
 	disease_img: ''
 }
 
+let nameset = new Set();
+let analysis_result = {}
+let all_dic = {
+	"bean_bacterial_pustule": [],
+	"bean_bacterial_leaf_blight": [],
+	"green_onion_purple_blotch": [],
+	"green_onion_downy_mildew": [],
+	"green_onion_rust": [],
+	"napa_cabbage_black_rot": [],
+	"napa_cabbage_downy_mildew": [],
+	"pepper_anthracnose": [],
+	"pepper_powdery_mildew": [],
+	"radish_black_spot": [],
+	"radish_downy_mildew": []
+}
+
 /* 진단기록 폴더별 리스트 */
 router.get('/list', (req, res) => {
 	try {
@@ -35,9 +54,10 @@ router.get('/list', (req, res) => {
 		let decoded = jwt.verify(token, config.JWT.accessToken);
 		if (decoded) {
 			diagnosis.folder_id = req.query.folder_id
-			var sql = "SELECT * from diagnosis WHERE diagnosis_folder_id = ?";
+			diagnosis.disease_name = req.query.disease_name
+			var sql = "SELECT * from diagnosis WHERE diagnosis_folder_id = ? and disease_name =?";
 			try {
-				connection.query(sql, [diagnosis.folder_id], (err, result, fields) => {
+				connection.query(sql, [diagnosis.folder_id, diagnosis.disease_name], (err, result, fields) => {
 					console.log(result);
 					res.send(result);
 				});
@@ -173,6 +193,68 @@ router.delete('/delete', (req, res) => {
 		err.statusCode = 400;
 		res.send(err);
 	}
+});
+
+
+/* 진단기록 폴더별 분석*/
+router.get('/analysis', (req, res) => {
+	try {
+		token = req.headers.token;
+		check_body(req.query);
+
+		let decoded = jwt.verify(token, config.JWT.accessToken);
+		if (decoded) {
+			diagnosis.folder_id = req.query.folder_id
+
+			var sql = "SELECT disease_name, diagnosis_date, disease_scale from diagnosis WHERE diagnosis_folder_id = ?;"
+
+			try {
+				connection.query(sql, [diagnosis.folder_id], (err, result, fields) => {
+					for (const i of result) {
+						for (const disease in all_dic) {
+							if (i.disease_name == disease) {
+								all_dic[i.disease_name].push([i.diagnosis_date, i.disease_scale])
+								nameset.add(i.disease_name)
+							}
+						}
+					}
+
+					//response 
+					for (const name of nameset) {
+						analysis_result[name] = all_dic[name]
+					}
+					res.send(analysis_result);
+
+					console.log("nameset", nameset)
+					console.log("all_dic", all_dic)
+					console.log("analysis_result", analysis_result)
+
+
+					// list, dic, set 초기화
+					nameset.clear()
+					analysis_result = {}
+					for (const disease in all_dic) {
+						while (all_dic[disease].length > 0) {
+							all_dic[disease].pop();
+						}
+					}
+					console.log("nameset", nameset)
+					console.log("all_dic", all_dic)
+					console.log("analysis_result", analysis_result)
+
+				});
+			} catch (err) {
+				res.send(err);
+			}
+		} else {
+			resSend(res, 400, 'get diagnosis analysis fail');
+		}
+
+	} catch (err) {
+		err.statusCode = 400;
+		res.send(err);
+	}
+
 });
 
 
