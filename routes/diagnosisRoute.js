@@ -106,7 +106,7 @@ router.post('/create', (req, res) => {
 				[diagnosis.folder_id, diagnosis.diagnosis_type, date, diagnosis.disease_name, diagnosis.disease_scale, diagnosis.disease_img],
 				(err, result, fields) => {
 					console.log(result);
-					result[0].statusCode = 202;
+					result.statusCode = 202;
 					res.send(result);
 				});
 		} else {
