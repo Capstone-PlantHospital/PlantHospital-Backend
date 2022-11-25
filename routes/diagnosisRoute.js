@@ -84,7 +84,8 @@ router.post('/create', (req, res) => {
 				[diagnosis.folder_id, diagnosis.diagnosis_type, date, diagnosis.disease_name, diagnosis.disease_scale, diagnosis.disease_img],
 				(err, result, fields) => {
 					console.log(result);
-					resSend(res, 200, 'diagnosis create sucessfully');
+					// resSend(res, 200, 'diagnosis create sucessfully');
+					res.send(result);
 				});
 		} else {
 			resSend(res, 400, 'diagnosis create fail');
@@ -275,11 +276,16 @@ router.get('/random', (req, res, next) => {
 		try {
 			connection.query(sql, [Id_diagnosis[id]], (err, result, fields) => {
 				console.log(result);
+				result[0].statusCode = 202;
+				console.log(result[0]);
+
 				res.send(result);
 
 			});
 		} catch (err) {
 			delete_list()
+			err.statusCode = 400;
+
 			res.send(err);
 		}
 

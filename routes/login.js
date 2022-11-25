@@ -120,6 +120,12 @@ router.get("/", (req, res) => {
 		check_body(req.query);
 		user.number = req.query.number
 
+		if (user.number.length < 11) {
+			var error = new Error();
+			error.message = 'number is wrong';
+			throw error;
+		}
+
 		//가입 체크
 		var registerCheckQ = 'SELECT * from user WHERE user_number = ?';
 
@@ -137,9 +143,8 @@ router.get("/", (req, res) => {
 						if (result[0].active == 0) {
 							resSend(res, 400, '탈퇴한회원');
 
-						}
-						//관리자인 경우
-						if (result[0].admin == 1) {
+						} else if (result[0].admin == 1) {
+							//관리자인 경우
 							resSend(res, 200, '관리자');
 
 						} else {
