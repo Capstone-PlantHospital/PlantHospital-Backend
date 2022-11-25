@@ -182,10 +182,6 @@ router.post("/match", function (req, res) {
           console.log("insert 성공! The solution is: ", result);
           resSend(res, 200, 'user registered sucessfully');
 
-          // res.send({
-          //   statusCode: 200,
-          //   message: "user registered sucessfully",
-          // });
         }
       );
     } else {
@@ -224,12 +220,14 @@ router.get('/info', (req, res) => {
 
 /* 회원정보 수정 */
 /* 수정정보 입력 > 회원 id 조회 > 수정 */
-router.put('/update', (req, res) => {
+router.get('/update', (req, res) => {
   try {
     token = req.headers.token;
-    check_body(req.body);
+    check_body(req.query)
+    user.number = req.query.number
+    console.log(user.number)
 
-    if (req.body.number.length < 11) {
+    if (user.number.length < 11) {
       var error = new Error();
       error.message = 'number is wrong';
       throw error;
@@ -238,25 +236,37 @@ router.put('/update', (req, res) => {
 
     let decoded = jwt.verify(token, config.JWT.accessToken);
     if (decoded) {
-      user.first_name = req.body.first_name
-      user.last_name = req.body.last_name
-      user.number = req.body.number
 
-      var sql = "UPDATE user SET user_first_name = ?, user_last_name = ?, user_number=? WHERE user_id= ?;"
+      // 전화번호 중복 체크
+      var sql = 'SELECT * from user WHERE user_number = ?';
 
-      connection.query(sql,
-        [user.first_name, user.last_name, user.number, decoded.user_id],
-        (err, result, fields) => {
-          if (err) {
-            err.statusCode = 400;
-            res.send(err);
+      connection.query(sql, [user.number], async function (err, result, fields) {
+        if (err) {
+          throw err;
+        } else {
+          var keys = Object.keys(result);
+
+          //중복 아닐때
+          if (keys.length == 0) {
+            try {
+              await sendVerification()
+            } catch (err) {
+              console.log(err)
+            }
+
+            res.send(res_message);
 
           } else {
-            console.log(result);
-            result.statusCode = 200;
-            res.send(result);
+            resSend(res, 400, 'Number is duplicated');
+
+            // res.send({
+            //   statusCode: 400,
+            //   message: "Number is duplicated",
+            // });
           }
-        });
+        }
+      })
+
 
     }
   } catch (err) {
@@ -265,9 +275,51 @@ router.put('/update', (req, res) => {
   }
 });
 
+/* 회원정보 수정 인증번호 확인 */
+router.put('/update/match', (req, res) => {
+  try {
+    token = req.headers.token;
+    check_body(req.body);
+
+
+    let decoded = jwt.verify(token, config.JWT.accessToken);
+    if (decoded) {
+      const userVerficationCode = req.body.code; //사용자가 입력한 인증번호
+      user.first_name = req.body.first_name
+      user.last_name = req.body.last_name
+
+      var sql = "UPDATE user SET user_first_name = ?, user_last_name = ?, user_number=? WHERE user_id= ?;"
+
+      console.log("code -", verificationCode)
+      if (verificationCode == userVerficationCode) {
+        connection.query(sql,
+          [user.first_name, user.last_name, user.number, decoded.user_id],
+          (err, result, fields) => {
+            if (err) {
+              err.statusCode = 400;
+              res.send(err);
+
+            } else {
+              console.log(result);
+              result.statusCode = 200;
+              res.send(result);
+            }
+          });
+
+      } else {
+        var error = new Error();
+        error.message = 'code is wrong ' + verificationCode;
+        throw error;
+      }
+    }
+  } catch (err) {
+    err.statusCode = 400;
+    res.send(err);
+  }
+});
 
 /* 회원 탈퇴 */
-router.put('/delete', (req, res) => {
+router.delete('/delete', (req, res) => {
   try {
     token = req.headers.token;
 
@@ -275,7 +327,8 @@ router.put('/delete', (req, res) => {
 
     if (decoded) {
 
-      var sql = "UPDATE user set active=0 WHERE user_id= ?;"
+      // var sql = "UPDATE user set active=0 WHERE user_id= ?;"
+      var sql = "DELETE from user WHERE user_id= ?;"
 
       connection.query(sql,
         [decoded.user_id],
@@ -285,8 +338,12 @@ router.put('/delete', (req, res) => {
             res.send(err);
           } else {
             console.log(result);
-            result.statusCode = 200;
-            res.send(result);
+            if (result.affectedRows <= 0) {
+              resSend(res, 400, 'user delete fail')
+            } else {
+              result.statusCode = 200;
+              res.send(result);
+            }
           }
         });
 
