@@ -22,8 +22,13 @@ router.post('/create', (req, res) => {
 		var sql = "INSERT INTO notice(name, content) values (?,?);";
 
 		connection.query(sql, [name, content], (err, result, fields) => {
-			console.log(result);
-			resSend(res, 200, 'notice create sucessfully');
+			if (err) {
+				err.statusCode = 400;
+				res.send(err);
+			} else {
+				console.log(result);
+				resSend(res, 200, 'notice create sucessfully');
+			}
 		});
 
 	} catch (err) {
@@ -33,6 +38,26 @@ router.post('/create', (req, res) => {
 });
 
 
+/* 알림 불러오기 */
+router.get('/load', (req, res) => {
+	try {
+		var sql = "SELECT * FROM notice;"
+
+		connection.query(sql, (err, result, fields) => {
+			if (err) {
+				err.statusCode = 400;
+				res.send(err);
+			} else {
+				console.log(result);
+				res.send(result);
+			}
+		});
+
+	} catch (err) {
+		err.statusCode = 400;
+		res.send(err);
+	}
+});
 
 
 module.exports = router;
