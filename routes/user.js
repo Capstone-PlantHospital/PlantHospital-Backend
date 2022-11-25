@@ -225,7 +225,10 @@ router.get('/update', (req, res) => {
     token = req.headers.token;
     check_body(req.query)
     user.number = req.query.number
-    console.log(user.number)
+    user.last_name = req.query.last_name
+    user.first_name = req.query.first_name
+
+    console.log(user)
 
     if (user.number.length < 11) {
       var error = new Error();
@@ -238,7 +241,7 @@ router.get('/update', (req, res) => {
     if (decoded) {
 
       // 전화번호 중복 체크
-      var sql = 'SELECT * from user WHERE user_number = ?';
+      var sql = 'SELECT user_id from user WHERE user_number = ?';
 
       connection.query(sql, [user.number], async function (err, result, fields) {
         if (err) {
@@ -246,8 +249,18 @@ router.get('/update', (req, res) => {
         } else {
           var keys = Object.keys(result);
 
-          //중복 아닐때
+          // 번호 변경
           if (keys.length == 0) {
+            try {
+              await sendVerification()
+            } catch (err) {
+              console.log(err)
+            }
+
+            res.send(res_message);
+
+          } else if (result[0].user_id == decoded.user_id) {
+            // 번호 그대로 + 그 외 변경
             try {
               await sendVerification()
             } catch (err) {
@@ -258,12 +271,22 @@ router.get('/update', (req, res) => {
 
           } else {
             resSend(res, 400, 'Number is duplicated');
-
-            // res.send({
-            //   statusCode: 400,
-            //   message: "Number is duplicated",
-            // });
           }
+
+          // res.send(result)
+
+          // if (keys.length == 0) {
+          //   try {
+          //     await sendVerification()
+          //   } catch (err) {
+          //     console.log(err)
+          //   }
+
+          //   res.send(res_message);
+
+          // } else {
+          //   resSend(res, 400, 'Number is duplicated'); 
+          // }
         }
       })
 
@@ -285,8 +308,6 @@ router.put('/update/match', (req, res) => {
     let decoded = jwt.verify(token, config.JWT.accessToken);
     if (decoded) {
       const userVerficationCode = req.body.code; //사용자가 입력한 인증번호
-      user.first_name = req.body.first_name
-      user.last_name = req.body.last_name
 
       var sql = "UPDATE user SET user_first_name = ?, user_last_name = ?, user_number=? WHERE user_id= ?;"
 
