@@ -193,7 +193,7 @@ router.get("/match", (req, res) => {
 				token: token
 			});
 		} else {
-			resSend(res, 400, 'user login fail');
+			resSend(res, 400, 'fail ' + verificationCode);
 		}
 	} catch (err) {
 		err.statusCode = 400;

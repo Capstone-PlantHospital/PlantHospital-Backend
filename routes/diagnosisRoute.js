@@ -279,7 +279,7 @@ router.get('/random', (req, res, next) => {
 				result[0].statusCode = 202;
 				console.log(result[0]);
 
-				res.send(result);
+				res.send(result[0]);
 
 			});
 		} catch (err) {
