@@ -32,17 +32,50 @@ var diagnosis = {
 let nameset = new Set();
 let analysis_result = {}
 let all_dic = {
-	"bean_bacterial_pustule": [],
-	"bean_bacterial_leaf_blight": [],
-	"green_onion_purple_blotch": [],
-	"green_onion_downy_mildew": [],
-	"green_onion_rust": [],
-	"napa_cabbage_black_rot": [],
-	"napa_cabbage_downy_mildew": [],
-	"pepper_anthracnose": [],
-	"pepper_powdery_mildew": [],
-	"radish_black_spot": [],
-	"radish_downy_mildew": []
+	"bean_bacterial_pustule": {
+		date: [],
+		scale: []
+	},
+	"bean_bacterial_leaf_blight": {
+		date: [],
+		scale: []
+	},
+	"green_onion_purple_blotch": {
+		date: [],
+		scale: []
+	},
+	"green_onion_downy_mildew": {
+		date: [],
+		scale: []
+	},
+	"green_onion_rust": {
+		date: [],
+		scale: []
+	},
+	"napa_cabbage_black_rot": {
+		date: [],
+		scale: []
+	},
+	"napa_cabbage_downy_mildew": {
+		date: [],
+		scale: []
+	},
+	"pepper_anthracnose": {
+		date: [],
+		scale: []
+	},
+	"pepper_powdery_mildew": {
+		date: [],
+		scale: []
+	},
+	"radish_black_spot": {
+		date: [],
+		scale: []
+	},
+	"radish_downy_mildew": {
+		date: [],
+		scale: []
+	}
 }
 
 /* 진단기록 폴더별 리스트 */
@@ -212,16 +245,20 @@ router.get('/analysis', (req, res) => {
 
 			var sql = "SELECT disease_name, diagnosis_date, disease_scale from diagnosis WHERE diagnosis_folder_id = ?;"
 
+
 			try {
 				connection.query(sql, [diagnosis.folder_id], (err, result, fields) => {
 					for (const i of result) {
 						for (const disease in all_dic) {
 							if (i.disease_name == disease) {
-								all_dic[i.disease_name].push([i.diagnosis_date, i.disease_scale])
+								all_dic[i.disease_name]['date'].push(i.diagnosis_date)
+								all_dic[i.disease_name]['scale'].push(i.disease_scale)
+								// all_dic[i.disease_name][date].push(i.diagnosis_date, i.disease_scale])
 								nameset.add(i.disease_name)
 							}
 						}
 					}
+
 
 					//response 
 					for (const name of nameset) {
@@ -238,8 +275,9 @@ router.get('/analysis', (req, res) => {
 					nameset.clear()
 					analysis_result = {}
 					for (const disease in all_dic) {
-						while (all_dic[disease].length > 0) {
-							all_dic[disease].pop();
+						while (all_dic[disease]['date'].length > 0) {
+							all_dic[disease]['date'].pop();
+							all_dic[disease]['scale'].pop();
 						}
 					}
 					console.log("nameset", nameset)
