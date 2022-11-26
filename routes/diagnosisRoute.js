@@ -245,15 +245,13 @@ router.get('/analysis', (req, res) => {
 
 			var sql = "SELECT disease_name, diagnosis_date, disease_scale from diagnosis WHERE diagnosis_folder_id = ?;"
 
-
 			try {
 				connection.query(sql, [diagnosis.folder_id], (err, result, fields) => {
 					for (const i of result) {
 						for (const disease in all_dic) {
 							if (i.disease_name == disease) {
-								all_dic[i.disease_name]['date'].push(i.diagnosis_date)
+								all_dic[i.disease_name]['date'].push(i.diagnosis_date.getFullYear())
 								all_dic[i.disease_name]['scale'].push(i.disease_scale)
-								// all_dic[i.disease_name][date].push(i.diagnosis_date, i.disease_scale])
 								nameset.add(i.disease_name)
 							}
 						}
@@ -264,6 +262,45 @@ router.get('/analysis', (req, res) => {
 					for (const name of nameset) {
 						analysis_result[name] = all_dic[name]
 					}
+
+					// find max
+					for (const disease in analysis_result) {
+						let year = analysis_result[disease]['date'][0]
+						let max = analysis_result[disease]['scale'][0]
+						let maxyear = [analysis_result[disease]['date'][0]]
+						let maxscale = [analysis_result[disease]['scale'][0]]
+						index = 0
+
+						for (const date of analysis_result[disease]['date']) {
+							let tmp_scale = analysis_result[disease]['scale'][index]
+							if (year == date) {
+								if (max < tmp_scale) {
+									max = tmp_scale
+									if (maxyear.includes(date)) { //이미 집어넣은 최댓값이 있을 때
+										let max_index = maxyear.indexOf(date)
+										maxscale[max_index] = tmp_scale
+									} else { // 최댓값 처음 넣을 때
+										maxyear.push(date)
+										let max_index = maxyear.indexOf(date)
+										maxscale[max_index] = tmp_scale
+									}
+								}
+							} else {
+								year = date
+								max = tmp_scale
+								maxyear.push(year)
+								maxscale.push(tmp_scale)
+							}
+							index += 1
+							console.log(disease, "max -", max, "maxyear", maxyear, "maxscale", maxscale, "index", index)
+						}
+						console.log("maxyear", maxyear)
+						console.log("maxsclae", maxscale)
+
+						analysis_result[disease]['date'] = maxyear
+						analysis_result[disease]['scale'] = maxscale
+					}
+
 					res.send(analysis_result);
 
 					console.log("nameset", nameset)
