@@ -361,7 +361,8 @@ router.delete('/delete', (req, res) => {
       // var sql = "UPDATE user set active=0 WHERE user_id= ?;"
       var sql = "DELETE from user WHERE user_id= ?;"
 
-      connection.query(sql, [decoded.user_id],
+      connection.query(sql,
+        [decoded.user_id],
         (err, result, fields) => {
           if (err) {
             err.statusCode = 400;

@@ -19,7 +19,8 @@ router.post('/create', (req, res) => {
 		let name = req.body.name;
 		let content = req.body.content;
 
-		var sql = "INSERT INTO notice(name, content) values (?,?);";
+		// var sql = "INSERT INTO notice(name, content) values (?,?);";
+		var sql = "UPDATE notice SET name=?, content=? where id = 1;"
 
 		connection.query(sql, [name, content], (err, result, fields) => {
 			if (err) {
@@ -41,7 +42,7 @@ router.post('/create', (req, res) => {
 /* 알림 불러오기 */
 router.get('/load', (req, res) => {
 	try {
-		var sql = "SELECT * FROM notice;"
+		var sql = "SELECT * FROM notice where id = 1;"
 
 		connection.query(sql, (err, result, fields) => {
 			if (err) {
