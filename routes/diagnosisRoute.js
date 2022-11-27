@@ -138,9 +138,14 @@ router.post('/create', (req, res) => {
 			connection.query(sql,
 				[diagnosis.folder_id, diagnosis.diagnosis_type, date, diagnosis.disease_name, diagnosis.disease_scale, diagnosis.disease_img],
 				(err, result, fields) => {
-					console.log(result);
-					result.statusCode = 202;
-					res.send(result);
+					if (err) {
+						err.statusCode = 400;
+						res.send(err);
+					} else {
+						console.log(result);
+						result.statusCode = 202;
+						res.send(result);
+					}
 				});
 		} else {
 			resSend(res, 400, 'diagnosis create fail');
