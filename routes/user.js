@@ -179,8 +179,13 @@ router.post("/match", function (req, res) {
         registerUserQ,
         [user.first_name, user.last_name, user.number],
         function (err, result, fields) {
-          console.log("insert 성공! The solution is: ", result);
-          resSend(res, 200, 'user registered sucessfully');
+          if (err) {
+            err.statusCode = 400;
+            res.send(err);
+          } else {
+            console.log("insert 성공! The solution is: ", result);
+            resSend(res, 200, 'user registered sucessfully');
+          }
 
         }
       );
@@ -206,9 +211,14 @@ router.get('/info', (req, res) => {
       var sql = "SELECT * FROM user where user_id = ?";
 
       connection.query(sql, [decoded.user_id], (err, result, fields) => {
-        console.log(result);
-        result.statusCode = 200;
-        res.send(result);
+        if (err) {
+          err.statusCode = 400;
+          res.send(err);
+        } else {
+          console.log(result);
+          result.statusCode = 200;
+          res.send(result);
+        }
       });
     }
   } catch (err) {
@@ -351,8 +361,7 @@ router.delete('/delete', (req, res) => {
       // var sql = "UPDATE user set active=0 WHERE user_id= ?;"
       var sql = "DELETE from user WHERE user_id= ?;"
 
-      connection.query(sql,
-        [decoded.user_id],
+      connection.query(sql, [decoded.user_id],
         (err, result, fields) => {
           if (err) {
             err.statusCode = 400;

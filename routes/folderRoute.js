@@ -33,8 +33,13 @@ router.get('/list', (req, res) => {
 			var sql = "SELECT * FROM folder where folder_user_id = ?";
 
 			connection.query(sql, [decoded.user_id], (err, result, fields) => {
-				console.log(result);
-				res.send(result);
+				if (err) {
+					err.statusCode = 400;
+					res.send(err);
+				} else {
+					console.log(result);
+					res.send(result);
+				}
 			});
 		}
 	} catch (err) {
@@ -61,8 +66,13 @@ router.get('/type', (req, res) => {
 			var sql = "SELECT * FROM folder where folder_user_id = ? AND folder_type = ?;";
 
 			connection.query(sql, [decoded.user_id, folder.type], (err, result, fields) => {
-				console.log(result);
-				res.send(result);
+				if (err) {
+					err.statusCode = 400;
+					res.send(err);
+				} else {
+					console.log(result);
+					res.send(result);
+				}
 			});
 		}
 	} catch (err) {
@@ -94,8 +104,13 @@ router.post('/create', (req, res) => {
 			var sql = "INSERT INTO folder(folder_name, folder_type, folder_user_id) values (?,?,?);";
 
 			connection.query(sql, [folder.name, folder.type, folder.user_id], (err, result, fields) => {
-				console.log(result);
-				resSend(res, 200, 'folder create sucessfully');
+				if (err) {
+					err.statusCode = 400;
+					res.send(err);
+				} else {
+					console.log(result);
+					resSend(res, 200, 'folder create sucessfully');
+				}
 			});
 		}
 	} catch (err) {
